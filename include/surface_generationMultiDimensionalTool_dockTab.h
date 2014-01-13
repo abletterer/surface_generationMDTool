@@ -1,5 +1,5 @@
-#ifndef _DIALOG_GENERATI0NMULTIDIMENSIONALTOOL_H_
-#define _DIALOG_GENERATI0NMULTIDIMENSIONALTOOL_H_
+#ifndef _SURFACE_GENERATI0NMULTIDIMENSIONALTOOL_DOCKTAB_H_
+#define _SURFACE_GENERATI0NMULTIDIMENSIONALTOOL_DOCKTAB_H_
 
 #include "ui_dialog_generationMultiDimensionalTool.h"
 
@@ -16,12 +16,12 @@ class MapHandlerGen;
 class Surface_GenerationMultiDimensionalTool_Plugin;
 class MapParameters;
 
-class Dialog_GenerationMultiDimensionalTool : public QDialog, public Ui::Dialog_GenerationCage
+class Surface_GenerationMultiDimensionalTool_DockTab : public QDialog, public Ui::Dialog_GenerationCage
 {
     Q_OBJECT
 
 public:
-    Dialog_GenerationMultiDimensionalTool(SCHNApps* s);
+    Surface_GenerationMultiDimensionalTool_DockTab(SCHNApps* s);
 
     void updateResolutionsFromPlugin(Geom::Vec3i resolutions) {
         spin_resolution_x->setValue(resolutions[0]);
