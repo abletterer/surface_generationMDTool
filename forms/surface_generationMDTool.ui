@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>Surface_Render_TabWidget</class>
- <widget class="QWidget" name="Surface_Render_TabWidget">
+ <class>Surface_GenerationMDTool_TabWidget</class>
+ <widget class="QWidget" name="Surface_GenerationMDTool_TabWidget">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -17,7 +17,4 @@
  </widget>
  <resources/>
  <connections/>
- <buttongroups>
-  <buttongroup name="group_faceShading"/>
- </buttongroups>
 </ui>
