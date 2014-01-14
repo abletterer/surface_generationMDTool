@@ -5,13 +5,17 @@
 
 #include "surface_generationMDTool_dockTab.h"
 
-#include "Algo/Import/import.h"
+#include "Geometry/bounding_box.h"
+
+#include "Topology/generic/traversor2.h"
 
 namespace CGoGN
 {
 
 namespace SCHNApps
 {
+
+typedef boost::shared_ptr<std::vector<std::vector<PFP2::VEC3> > > VectorVectorVec3Ptr;
 
 class Surface_GenerationMDTool_Plugin : public PluginInteraction
 {
@@ -44,13 +48,15 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private slots:
-    void selectedMapChanged(MapHandlerGen* pev, MapHandlerGen* cur);
+    void initializeCages();
+    bool isInCage(PFP2::VEC3 point, std::vector<PFP2::VEC3> cage);
 
 public slots:
     //Slots for Python calls
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;
+    std::vector<std::vector<PFP2::VEC3> > m_cages;
 };
 
 } // namespace SCHNApps
