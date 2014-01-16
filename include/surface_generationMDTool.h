@@ -9,13 +9,13 @@
 
 #include "Topology/generic/traversor2.h"
 
+#include "Utils/Shaders/shaderColorPerVertex.h"
+
 namespace CGoGN
 {
 
 namespace SCHNApps
 {
-
-typedef boost::shared_ptr<std::vector<std::vector<PFP2::VEC3> > > VectorVectorVec3Ptr;
 
 class Surface_GenerationMDTool_Plugin : public PluginInteraction
 {
@@ -35,7 +35,7 @@ public:
 	virtual void disable();
 
     virtual void draw(View* view) {}
-    virtual void drawMap(View* view, MapHandlerGen* map) {}
+    virtual void drawMap(View* view, MapHandlerGen* map);
 
     virtual void keyPress(View* view, QKeyEvent* event) {}
     virtual void keyRelease(View* view, QKeyEvent* event) {}
@@ -48,15 +48,24 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private slots:
-    void initializeCages();
     bool isInCage(PFP2::VEC3 point, std::vector<PFP2::VEC3> cage);
+//    void computePointMVC(const std::vector<PFP2::VEC3>& cage);
+//    PFP2::REAL computeMVC(const PFP2::VEC3& pt, Dart vertex, PFP2::MAP* cage,
+//               const VertexAttribute<PFP2::VEC3>& position);
 
 public slots:
     //Slots for Python calls
+    void initializeCages();
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;
     std::vector<std::vector<PFP2::VEC3> > m_cages;
+
+    CGoGN::Utils::ShaderColorPerVertex* m_colorPerVertexShader;
+    Utils::VBO* m_positionVBO;
+    Utils::VBO* m_colorVBO;
+
+    bool m_toDraw;
 };
 
 } // namespace SCHNApps
