@@ -11,6 +11,8 @@
 
 #include "Utils/Shaders/shaderColorPerVertex.h"
 
+#include "coordinates.h"
+
 namespace CGoGN
 {
 
@@ -47,17 +49,22 @@ public:
     virtual void viewLinked(View* view) {}
     virtual void viewUnlinked(View* view) {}
 
-private slots:
+private :
     bool isInCage(PFP2::VEC3 point, std::vector<PFP2::VEC3> cage);
-//    void computePointMVC(const std::vector<PFP2::VEC3>& cage);
-//    PFP2::REAL computeMVC(const PFP2::VEC3& pt, Dart vertex, PFP2::MAP* cage,
-//               const VertexAttribute<PFP2::VEC3>& position);
+
+    void createCages();
+
+private slots:
+
+    void selectedMapChanged(MapHandlerGen *prev, MapHandlerGen *cur);
 
 public slots:
     //Slots for Python calls
-    void initializeCages();
+    void initializeCages(const QString& view, const QString& map);
 
 protected:
+    MapHandlerGen* m_selectedMap;
+
     Surface_GenerationMDTool_DockTab* m_dockTab;
     std::vector<std::vector<PFP2::VEC3> > m_cages;
 
