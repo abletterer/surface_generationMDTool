@@ -11,6 +11,8 @@
 
 #include "Utils/Shaders/shaderColorPerVertex.h"
 
+#include "Algo/Modelisation/voxellisation.h"
+
 #include "coordinates.h"
 
 namespace CGoGN
@@ -63,8 +65,6 @@ public slots:
     void initializeCages(const QString& view, const QString& map);
 
 protected:
-    MapHandlerGen* m_selectedMap;
-
     Surface_GenerationMDTool_DockTab* m_dockTab;
     std::vector<std::vector<PFP2::VEC3> > m_cages;
 

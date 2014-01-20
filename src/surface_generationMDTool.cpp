@@ -12,8 +12,6 @@ namespace SCHNApps
 
 bool Surface_GenerationMDTool_Plugin::enable()
 {
-    m_selectedMap = m_schnapps->getSelectedMap();
-
     m_dockTab = new Surface_GenerationMDTool_DockTab(m_schnapps, this);
     m_schnapps->addPluginDockTab(this, m_dockTab, "Surface_GenerationMultiDimensionalTool");
 
@@ -22,8 +20,6 @@ bool Surface_GenerationMDTool_Plugin::enable()
 
     m_positionVBO = new Utils::VBO();
     m_colorVBO = new Utils::VBO();
-
-    connect(m_schnapps, SIGNAL(selectedMapChanged(MapHandlerGen*, MapHandlerGen*)), this, SLOT(selectedMapChanged(MapHandlerGen*, MapHandlerGen*)));
 
     m_toDraw = false;
 
@@ -35,8 +31,6 @@ void Surface_GenerationMDTool_Plugin::disable()
     delete m_colorPerVertexShader;
     delete m_positionVBO;
     delete m_colorVBO;
-
-    disconnect(m_schnapps, SIGNAL(selectedMapChanged(MapHandlerGen*, MapHandlerGen*)), this, SLOT(selectedMapChanged(MapHandlerGen*, MapHandlerGen*)));
 }
 
 void Surface_GenerationMDTool_Plugin::drawMap(View *view, MapHandlerGen *map)
@@ -55,18 +49,14 @@ void Surface_GenerationMDTool_Plugin::drawMap(View *view, MapHandlerGen *map)
     }
 }
 
-void Surface_GenerationMDTool_Plugin::selectedMapChanged(MapHandlerGen *prev, MapHandlerGen *cur)
-{
-    m_selectedMap = cur;
-}
-
 void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const QString& map)
 {
+
     MapHandler<PFP2>* mh_selected = static_cast<MapHandler<PFP2>*>(m_schnapps->getMap(map));
     PFP2::MAP* selectedMap = mh_selected->getMap();
 
     VertexAttribute<PFP2::VEC3> position = selectedMap->getAttribute<PFP2::VEC3, VERTEX>("position");
-    VertexAttribute <PFP2::VEC4> color = selectedMap->getAttribute<PFP2::VEC4, VERTEX>("color") ;
+    VertexAttribute <PFP2::VEC4> color = selectedMap->getAttribute<PFP2::VEC4, VERTEX>("color");
     if(!color.isValid())
     {
         color = selectedMap->addAttribute<PFP2::VEC4, VERTEX>("color");
@@ -74,40 +64,46 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
     }
 
     Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*selectedMap, position);
+    PFP2::VEC3 min = bb.min();
+    PFP2::VEC3 max = bb.max();
+
+    Algo::Surface::Modelisation::swapVectorMax(min, max);
+
     m_cages.reserve(4);
 
     m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = bb.min();
-    m_cages.back()[0][2] = bb.max()[2];
-    m_cages.back()[1][0] = (bb.min()[0]+bb.max()[0])/2;
-    m_cages.back()[1][1] = (bb.min()[1]+bb.max()[1])/2;
-    m_cages.back()[1][2] = bb.max()[2];
+    m_cages.back()[0] = min;
+    m_cages.back()[0][2] = max[2];
+    m_cages.back()[1][0] = (min[0]+max[0])/2;
+    m_cages.back()[1][1] = (min[1]+max[1])/2;
+    m_cages.back()[1][2] = max[2];
 
     m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = (bb.min()[0]+bb.max()[0])/2;
-    m_cages.back()[0][1] = bb.min()[1];
-    m_cages.back()[0][2] = bb.max()[2];
-    m_cages.back()[1][0] = bb.max()[0];
-    m_cages.back()[1][1] = (bb.min()[1]+bb.max()[1])/2;
-    m_cages.back()[1][2] = bb.max()[2];
+    m_cages.back()[0] = (min[0]+max[0])/2;
+    m_cages.back()[0][1] = min[1];
+    m_cages.back()[0][2] = max[2];
+    m_cages.back()[1][0] = max[0];
+    m_cages.back()[1][1] = (min[1]+max[1])/2;
+    m_cages.back()[1][2] = max[2];
 
     m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = bb.min()[0];
-    m_cages.back()[0][1] = (bb.min()[1]+bb.max()[1])/2;
-    m_cages.back()[0][2] = bb.max()[2];
-    m_cages.back()[1][0] = (bb.min()[0]+bb.max()[0])/2;
-    m_cages.back()[1][1] = bb.max()[1];
-    m_cages.back()[1][2] = bb.max()[2];
+    m_cages.back()[0] = min[0];
+    m_cages.back()[0][1] = (min[1]+max[1])/2;
+    m_cages.back()[0][2] = max[2];
+    m_cages.back()[1][0] = (min[0]+max[0])/2;
+    m_cages.back()[1][1] = max[1];
+    m_cages.back()[1][2] = max[2];
 
     m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = (bb.min()[0]+bb.max()[0])/2;
-    m_cages.back()[0][1] = (bb.min()[1]+bb.max()[1])/2;
-    m_cages.back()[0][2] = bb.max()[2];
-    m_cages.back()[1] = bb.max();
+    m_cages.back()[0] = (min[0]+max[0])/2;
+    m_cages.back()[0][1] = (min[1]+max[1])/2;
+    m_cages.back()[0][2] = max[2];
+    m_cages.back()[1] = max;
 
     TraversorV<PFP2::MAP> trav(*selectedMap);
     for(Dart d = trav.begin(); d != trav.end(); d = trav.next())
     {
+        position[d].data()[2] = max[2];
         if(isInCage(position[d], m_cages[0]))
         {
             color[d] = Geom::Vec4f(1.,0.2,0.2,1.);
@@ -127,6 +123,8 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
     }
 
     m_positionVBO->updateData(position);
+    mh_selected->notifyAttributeModification(position);
+    mh_selected->updateBB(position);
     m_colorVBO->updateData(color);
     m_toDraw = true;
 
