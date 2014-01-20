@@ -167,24 +167,36 @@ void Surface_GenerationMDTool_Plugin::createCages()
     position[d0] = m_cages[0][1];
     d0 = map->phi1(d0);
     position[d0] = m_cages[2][0];
+    position[d0][0] += (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
     d0 = map->phi1(d0);
     position[d0] = PFP2::VEC3(m_cages[2][0][0], m_cages[2][1][1], m_cages[2][1][2]);
+    position[d0][0] += (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
+    position[d0][1] += (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
     d0 = map->phi1(d0);
     position[d0] = m_cages[2][1];
+    position[d0][1] += (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
     d0 = map->phi1(d0);
 
     d2 = map->phi1(d2);
     position[d2] = m_cages[1][0];
+    position[d2][1] -= (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
     d2 = map->phi1(d2);
     position[d2] = m_cages[0][0];
+    position[d2][0] += (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
+    position[d2][1] -= (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
 
     d3 = map->phi1(d3);
     position[d3] = m_cages[1][1];
+    position[d3][0] -= (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
     d3 = map->phi1(d3);
     position[d3] = PFP2::VEC3(m_cages[1][1][0], m_cages[1][0][1], m_cages[1][1][2]);
+    position[d3][0] -= (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
+    position[d3][1] -= (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
 
     d1 = map->phi<11>(d1);
     position[d1] = m_cages[3][1];
+    position[d1][0] -= (m_cages[0][0][0]+m_cages[3][1][0])/5;   //Agrandissement de la cage
+    position[d1][1] += (m_cages[0][0][1]+m_cages[3][1][1])/5;   //Agrandissement de la cage
 
     mh_map->updateBB(position);
     mh_map->notifyAttributeModification(position);
