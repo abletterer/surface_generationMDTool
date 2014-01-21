@@ -54,7 +54,7 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private :
-    bool isInCage(PFP2::VEC3 point, std::vector<Dart> cage);
+    bool isInCage(PFP2::VEC3 point, std::deque<Dart> cage, PFP2::MAP* map);
 
     void createCages(PFP2::MAP* object);
     void markCages(PFP2::MAP* cage, PFP2::MAP* object);
@@ -69,7 +69,7 @@ public slots:
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;
-    std::vector<std::vector<Dart> > m_cages;
+    std::vector<std::deque<Dart> > m_cages;
 
     CGoGN::Utils::ShaderColorPerVertex* m_colorPerVertexShader;
     Utils::VBO* m_positionVBO;
