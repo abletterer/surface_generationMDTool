@@ -15,6 +15,8 @@
 
 #include "coordinates.h"
 
+#include "vCage.h"
+
 namespace CGoGN
 {
 
@@ -52,9 +54,10 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private :
-    bool isInCage(PFP2::VEC3 point, std::vector<PFP2::VEC3> cage);
+    bool isInCage(PFP2::VEC3 point, std::vector<Dart> cage);
 
-    void createCages();
+    void createCages(PFP2::MAP* object);
+    void markCages(PFP2::MAP* cage, PFP2::MAP* object);
 
 private slots:
 
@@ -66,7 +69,7 @@ public slots:
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;
-    std::vector<std::vector<PFP2::VEC3> > m_cages;
+    std::vector<std::vector<Dart> > m_cages;
 
     CGoGN::Utils::ShaderColorPerVertex* m_colorPerVertexShader;
     Utils::VBO* m_positionVBO;

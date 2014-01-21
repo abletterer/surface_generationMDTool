@@ -63,50 +63,34 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         mh_selected->registerAttribute(color);
     }
 
-    Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*selectedMap, position);
-    PFP2::VEC3 min = bb.min();
-    PFP2::VEC3 max = bb.max();
+    VertexAttribute<VCage> vCagesObject = selectedMap->getAttribute<VCage, VERTEX>("VCages");
+    if(!vCagesObject.isValid())
+    {
+        vCagesObject = selectedMap->addAttribute<VCage, VERTEX>("VCages");
+    }
 
-    Algo::Surface::Modelisation::swapVectorMax(min, max);
+    createCages(selectedMap);
 
-    m_cages.reserve(4);
+    MapHandlerGen* mhg_map = m_schnapps->getMap("Cages");
+    MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
+    PFP2::MAP* cages = mh_map->getMap();
 
-    m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = min;
-    m_cages.back()[0][2] = max[2];
-    m_cages.back()[1][0] = (min[0]+max[0])/2;
-    m_cages.back()[1][1] = (min[1]+max[1])/2;
-    m_cages.back()[1][2] = max[2];
-
-    m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = (min[0]+max[0])/2;
-    m_cages.back()[0][1] = min[1];
-    m_cages.back()[0][2] = max[2];
-    m_cages.back()[1][0] = max[0];
-    m_cages.back()[1][1] = (min[1]+max[1])/2;
-    m_cages.back()[1][2] = max[2];
-
-    m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = min[0];
-    m_cages.back()[0][1] = (min[1]+max[1])/2;
-    m_cages.back()[0][2] = max[2];
-    m_cages.back()[1][0] = (min[0]+max[0])/2;
-    m_cages.back()[1][1] = max[1];
-    m_cages.back()[1][2] = max[2];
-
-    m_cages.push_back(std::vector<PFP2::VEC3>(2));
-    m_cages.back()[0] = (min[0]+max[0])/2;
-    m_cages.back()[0][1] = (min[1]+max[1])/2;
-    m_cages.back()[0][2] = max[2];
-    m_cages.back()[1] = max;
+    VertexAttribute <VCage> vCagesCage = cages->getAttribute<VCage, VERTEX>("VCages");
+    if(!vCagesCage.isValid())
+    {
+        exit -1;
+    }
 
     TraversorV<PFP2::MAP> trav(*selectedMap);
+    TraversorV<PFP2::MAP> currentTrav(*cages);
+    int id;
     for(Dart d = trav.begin(); d != trav.end(); d = trav.next())
     {
-        position[d].data()[2] = max[2];
         if(isInCage(position[d], m_cages[0]))
         {
             color[d] = Geom::Vec4f(1.,0.2,0.2,1.);
+            vCagesObject[d].addNewCage();
+            id=-1;
         }
         else if(isInCage(position[d], m_cages[1]))
         {
@@ -122,13 +106,12 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         }
     }
 
-    m_positionVBO->updateData(position);
-    mh_selected->notifyAttributeModification(position);
     mh_selected->updateBB(position);
+    mh_selected->notifyAttributeModification(position);
+    mh_selected->notifyConnectivityModification();
+    m_positionVBO->updateData(position);
     m_colorVBO->updateData(color);
     m_toDraw = true;
-
-    createCages();
 
     if(view==m_schnapps->getSelectedView()->getName())
     {
@@ -136,17 +119,36 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
     }
 }
 
-void Surface_GenerationMDTool_Plugin::createCages()
+void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Cages", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
     PFP2::MAP* map = mh_map->getMap();
+
+    VertexAttribute<PFP2::VEC3> positionObject = object->getAttribute<PFP2::VEC3, VERTEX>("position");
+    if(!positionObject.isValid())
+    {
+        CGoGNout << "Object position attribute not valid" << CGoGNendl;
+        exit -1;
+    }
+
+    Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
+    PFP2::VEC3 min = bb.min();
+    PFP2::VEC3 max = bb.max();
+
+    Algo::Surface::Modelisation::swapVectorMax(min, max);
 
     VertexAttribute<PFP2::VEC3> position = map->getAttribute<PFP2::VEC3, VERTEX>("position") ;
     if(!position.isValid())
     {
         position = map->addAttribute<PFP2::VEC3, VERTEX>("position");
         mh_map->registerAttribute(position);
+    }
+
+    VertexAttribute <VCage> vCages = map->getAttribute<VCage, VERTEX>("VCages");
+    if(!vCages.isValid())
+    {
+        vCages = map->addAttribute<VCage, VERTEX>("VCages");
     }
 
     Dart d0 = map->newFace(4);
@@ -162,39 +164,65 @@ void Surface_GenerationMDTool_Plugin::createCages()
     d3 = map->phi1(d3);
     map->sewFaces(d3,map->phi_1(d1));
 
-    position[d0] = m_cages[0][1];
+    //Identification des cages :
+    //0 en bas à gauche, 1 en bas à droite, 2 en haut à gauche, 3 en haut à droite
+
+    m_cages.push_back(std::vector<Dart>());
+    position[d0] = (min+max)/2;
+    vCages[d0].addId(0);
+    vCages[d0].addId(1);
+    vCages[d0].addId(2);
+    vCages[d0].addId(3);
+    m_cages.back().push_back(d0);
+
     d0 = map->phi1(d0);
-    position[d0] = m_cages[2][0];
-    position[d0][0] += (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
+    position[d0] = PFP2::VEC3(min[0] + (min[0]+max[0])/5, (min[1]+max[1])/2, min[2]);
+    vCages[d0].addId(0);
+    vCages[d0].addId(2);
+    m_cages.back().push_back(d0);
+
     d0 = map->phi1(d0);
-    position[d0] = PFP2::VEC3(m_cages[2][0][0], m_cages[2][1][1], m_cages[2][1][2]);
-    position[d0][0] += (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
-    position[d0][1] += (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
+    position[d0] = PFP2::VEC3(min[0], max[1] + (min[1]+max[1])/5, min[2]);
+    vCages[d0].addId(2);
+    m_cages.back().push_back(d0);
+
     d0 = map->phi1(d0);
-    position[d0] = m_cages[2][1];
-    position[d0][1] += (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
-    d0 = map->phi1(d0);
+    position[d0] = PFP2::VEC3((min[0]+max[0])/2, max[1] + (min[1]+max[1])/5, min[2]);
+    vCages[d0].addId(2);
+    vCages[d0].addId(3);
+    m_cages.back().push_back(d0);
+
+
+    m_cages.push_back(std::vector<Dart>());
+    d2 = map->phi1(d2);
+    position[d2] = PFP2::VEC3((min[0]+max[10])/2, min[1] - (min[1]+max[1])/5, min[2]);
+    vCages[d2].addId(0);
+    vCages[d2].addId(1);
+    m_cages.back().push_back(d2);
 
     d2 = map->phi1(d2);
-    position[d2] = m_cages[1][0];
-    position[d2][1] -= (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
-    d2 = map->phi1(d2);
-    position[d2] = m_cages[0][0];
-    position[d2][0] += (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
-    position[d2][1] -= (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
+    position[d2] = PFP2::VEC3(min[0] + (min[0]+max[0])/5, min[1] - (min[1]+max[1])/5, min[2]);
+    vCages[d2].addId(0);
+    m_cages.back().push_back(d2);
+
+
+    m_cages.push_back(std::vector<Dart>());
+    d3 = map->phi1(d3);
+    position[d3] = PFP2::VEC3(max[0] - (min[0]+max[0])/5, (min[1]+max[1])/2, min[2]);
+    vCages[d3].addId(1);
+    vCages[d3].addId(3);
+    m_cages.back().push_back(d3);
 
     d3 = map->phi1(d3);
-    position[d3] = m_cages[1][1];
-    position[d3][0] -= (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
-    d3 = map->phi1(d3);
-    position[d3] = PFP2::VEC3(m_cages[1][1][0], m_cages[1][0][1], m_cages[1][1][2]);
-    position[d3][0] -= (m_cages[0][0][0]+m_cages[3][1][0])/5;  //Agrandissement de la cage
-    position[d3][1] -= (m_cages[0][0][1]+m_cages[3][1][1])/5;  //Agrandissement de la cage
+    position[d3] = PFP2::VEC3(max[0] - (min[0]+max[0])/5, min[1] - (min[1]+max[1])/5, min[2]);
+    vCages[d3].addId(1);
+    m_cages.back().push_back(d3);
 
+    m_cages.push_back(std::vector<Dart>());
     d1 = map->phi<11>(d1);
-    position[d1] = m_cages[3][1];
-    position[d1][0] -= (m_cages[0][0][0]+m_cages[3][1][0])/5;   //Agrandissement de la cage
-    position[d1][1] += (m_cages[0][0][1]+m_cages[3][1][1])/5;   //Agrandissement de la cage
+    position[d1] = PFP2::VEC3(max[0] - (min[0]+max[0])/5, max[1] + (min[1]+max[1])/5, min[2]);
+    vCages[d1].addId(3);
+    m_cages.back().push_back(d1);
 
     mh_map->updateBB(position);
     mh_map->notifyAttributeModification(position);
@@ -202,10 +230,9 @@ void Surface_GenerationMDTool_Plugin::createCages()
 }
 
 //Check whether a point is in the given cage
-bool Surface_GenerationMDTool_Plugin::isInCage(PFP2::VEC3 point, std::vector<PFP2::VEC3> cage)
+bool Surface_GenerationMDTool_Plugin::isInCage(PFP2::VEC3 point, std::vector<Dart> cage)
 {
-    return cage[0][0]<=point[0] && cage[0][1]<=point[1]
-       &&  cage[1][0]>=point[0] && cage[1][1]>=point[1];
+    return true;
 }
 
 #ifndef DEBUG
