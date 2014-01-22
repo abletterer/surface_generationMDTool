@@ -61,10 +61,10 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         mh_selected->registerAttribute(color);
     }
 
-    VertexAttribute<VCage> vCageObject = selectedMap->getAttribute<VCage, VERTEX>("VCage");
-    if(!vCageObject.isValid())
+    VertexAttribute<VCage> vCage = selectedMap->getAttribute<VCage, VERTEX>("VCage");
+    if(!vCage.isValid())
     {
-        vCageObject = selectedMap->addAttribute<VCage, VERTEX>("VCage");
+        vCage = selectedMap->addAttribute<VCage, VERTEX>("VCage");
     }
 
     createCages(selectedMap);
@@ -74,11 +74,6 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
     PFP2::MAP* cage = mh_map->getMap();
 
     VertexAttribute<PFP2::VEC3> positionCage = cage->getAttribute<PFP2::VEC3, VERTEX>("position");
-    VertexAttribute<VCage> vCageCage = cage->getAttribute<VCage, VERTEX>("VCage");
-    if(!vCageCage.isValid())
-    {
-        exit(-1);
-    }
 
     TraversorV<PFP2::MAP> trav(*selectedMap);
     for(Dart d = trav.begin(); d != trav.end(); d = trav.next())
@@ -87,34 +82,34 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         if(isInCage(position[d], m_cages[0], cage))
         {
             color[d] = Geom::Vec4f(1.,0.2,0.2,1.);
-            vCageObject[d].addVertex(m_cages[0][0]);
-            vCageObject[d].addVertex(cage->phi1(m_cages[0][0]));
-            vCageObject[d].addVertex(cage->phi1(m_cages[0][1]));
-            vCageObject[d].addVertex(m_cages[0][1]);
+            vCage[d].addVertex(m_cages[0][0]);
+            vCage[d].addVertex(cage->phi1(m_cages[0][0]));
+            vCage[d].addVertex(m_cages[0][1]);
+            vCage[d].addVertex(cage->phi1(m_cages[0][1]));
         }
         if(isInCage(position[d], m_cages[1], cage))
         {
             color[d] = Geom::Vec4f(0.2,1.,0.2,1.);
-            vCageObject[d].addVertex(m_cages[1][0]);
-            vCageObject[d].addVertex(cage->phi1(m_cages[1][0]));
-            vCageObject[d].addVertex(cage->phi1(m_cages[1][1]));
-            vCageObject[d].addVertex(m_cages[1][1]);
+            vCage[d].addVertex(m_cages[1][0]);
+            vCage[d].addVertex(cage->phi1(m_cages[1][0]));
+            vCage[d].addVertex(m_cages[1][1]);
+            vCage[d].addVertex(cage->phi1(m_cages[1][1]));
         }
         if(isInCage(position[d], m_cages[2], cage))
         {
             color[d] = Geom::Vec4f(0.2,0.2,1.,1.);
-            vCageObject[d].addVertex(m_cages[2][0]);
-            vCageObject[d].addVertex(cage->phi1(m_cages[2][0]));
-            vCageObject[d].addVertex(cage->phi1(m_cages[2][1]));
-            vCageObject[d].addVertex(m_cages[2][1]);
+            vCage[d].addVertex(m_cages[2][0]);
+            vCage[d].addVertex(cage->phi1(m_cages[2][0]));
+            vCage[d].addVertex(m_cages[2][1]);
+            vCage[d].addVertex(cage->phi1(m_cages[2][1]));
         }
         if(isInCage(position[d], m_cages[3], cage))
         {
             color[d] = Geom::Vec4f(0.2,1.,1.,1.);
-            vCageObject[d].addVertex(m_cages[3][0]);
-            vCageObject[d].addVertex(cage->phi1(m_cages[3][0]));
-            vCageObject[d].addVertex(cage->phi1(m_cages[3][1]));
-            vCageObject[d].addVertex(m_cages[3][1]);
+            vCage[d].addVertex(m_cages[3][0]);
+            vCage[d].addVertex(cage->phi1(m_cages[3][0]));
+            vCage[d].addVertex(m_cages[3][1]);
+            vCage[d].addVertex(cage->phi1(m_cages[3][1]));
         }
     }
 
