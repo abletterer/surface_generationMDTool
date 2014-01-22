@@ -58,13 +58,6 @@
     </widget>
    </item>
    <item>
-    <widget class="QPushButton" name="button_initializeCages">
-     <property name="text">
-      <string>Initialize cages</string>
-     </property>
-    </widget>
-   </item>
-   <item>
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
