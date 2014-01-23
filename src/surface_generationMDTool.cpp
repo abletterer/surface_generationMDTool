@@ -33,18 +33,18 @@ void Surface_GenerationMDTool_Plugin::disable()
 
 void Surface_GenerationMDTool_Plugin::drawMap(View *view, MapHandlerGen *map)
 {
-    if(m_toDraw)
-    {
-        //If VBO are initialized
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glEnable(GL_LIGHTING);
-        glEnable(GL_POLYGON_OFFSET_FILL);
-        m_colorPerVertexShader->setAttributePosition(m_positionVBO);
-        m_colorPerVertexShader->setAttributeColor(m_colorVBO);
-        m_colorPerVertexShader->setOpacity(1.);
-        map->draw(m_colorPerVertexShader, CGoGN::Algo::Render::GL2::TRIANGLES);
-        glDisable(GL_POLYGON_OFFSET_FILL);
-    }
+//    if(m_toDraw)
+//    {
+//        //If VBO are initialized
+//        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+//        glEnable(GL_LIGHTING);
+//        glEnable(GL_POLYGON_OFFSET_FILL);
+//        m_colorPerVertexShader->setAttributePosition(m_positionVBO);
+//        m_colorPerVertexShader->setAttributeColor(m_colorVBO);
+//        m_colorPerVertexShader->setOpacity(1.);
+//        map->draw(m_colorPerVertexShader, CGoGN::Algo::Render::GL2::TRIANGLES);
+//        glDisable(GL_POLYGON_OFFSET_FILL);
+//    }
 }
 
 void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const QString& map)
@@ -81,7 +81,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         position[d][2] = positionCage[m_cages[0][0]][2];
         if(isInCage(position[d], m_cages[0], cage))
         {
-            color[d] = Geom::Vec4f(1.,0.2,0.2,1.);
+            color[d] = PFP2::VEC4(1.,0.2,0.2,1.);
             vCage[d].addVertex(m_cages[0][0]);
             vCage[d].addVertex(cage->phi1(m_cages[0][0]));
             vCage[d].addVertex(m_cages[0][1]);
@@ -89,7 +89,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         }
         if(isInCage(position[d], m_cages[1], cage))
         {
-            color[d] = Geom::Vec4f(0.2,1.,0.2,1.);
+            color[d] = PFP2::VEC4(0.2,1.,0.2,1.);
             vCage[d].addVertex(m_cages[1][0]);
             vCage[d].addVertex(cage->phi1(m_cages[1][0]));
             vCage[d].addVertex(m_cages[1][1]);
@@ -97,7 +97,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         }
         if(isInCage(position[d], m_cages[2], cage))
         {
-            color[d] = Geom::Vec4f(0.2,0.2,1.,1.);
+            color[d] = PFP2::VEC4(0.2,0.2,1.,1.);
             vCage[d].addVertex(m_cages[2][0]);
             vCage[d].addVertex(cage->phi1(m_cages[2][0]));
             vCage[d].addVertex(m_cages[2][1]);
@@ -105,7 +105,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         }
         if(isInCage(position[d], m_cages[3], cage))
         {
-            color[d] = Geom::Vec4f(0.2,1.,1.,1.);
+            color[d] = PFP2::VEC4(0.2,1.,1.,1.);
             vCage[d].addVertex(m_cages[3][0]);
             vCage[d].addVertex(cage->phi1(m_cages[3][0]));
             vCage[d].addVertex(m_cages[3][1]);
