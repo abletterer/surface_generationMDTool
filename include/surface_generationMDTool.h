@@ -15,8 +15,6 @@
 
 #include "coordinates.h"
 
-#include "vCage.h"
-
 namespace CGoGN
 {
 
