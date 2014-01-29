@@ -15,6 +15,8 @@
 
 #include "coordinates.h"
 
+#include "Algo/Modelisation/subdivision.h"
+
 namespace CGoGN
 {
 
@@ -67,7 +69,7 @@ public slots:
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;
-    std::vector<std::deque<Dart> > m_cages;
+    std::deque<std::deque<Dart> > m_cages;
 
     CGoGN::Utils::ShaderColorPerVertex* m_colorPerVertexShader;
     Utils::VBO* m_positionVBO;
