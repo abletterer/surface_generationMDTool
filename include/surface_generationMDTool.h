@@ -65,7 +65,7 @@ private slots:
 
 public slots:
     //Slots for Python calls
-    void initializeCages(const QString& view, const QString& map);
+    void initializeCages(const QString& view);
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;

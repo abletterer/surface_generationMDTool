@@ -33,26 +33,25 @@ void Surface_GenerationMDTool_Plugin::disable()
 
 void Surface_GenerationMDTool_Plugin::drawMap(View *view, MapHandlerGen *map)
 {
-//    if(m_toDraw)
-//    {
-//        //If VBO are initialized
-//        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-//        glEnable(GL_LIGHTING);
-//        glEnable(GL_POLYGON_OFFSET_FILL);
-//        m_colorPerVertexShader->setAttributePosition(m_positionVBO);
-//        m_colorPerVertexShader->setAttributeColor(m_colorVBO);
-//        m_colorPerVertexShader->setOpacity(1.);
-//        map->draw(m_colorPerVertexShader, CGoGN::Algo::Render::GL2::TRIANGLES);
-//        glDisable(GL_POLYGON_OFFSET_FILL);
-//    }
 }
 
-void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const QString& map)
+void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view)
 {
-    MapHandler<PFP2>* mh_selected = static_cast<MapHandler<PFP2>*>(m_schnapps->getMap(map));
+    MapHandlerGen* mhg_selected = m_schnapps->addMap("Model", 2);
+    MapHandler<PFP2>* mh_selected = static_cast<MapHandler<PFP2>*>(mhg_selected);
     PFP2::MAP* selectedMap = mh_selected->getMap();
+    Dart d0 = selectedMap->newFace(4);
 
-    VertexAttribute<PFP2::VEC3> position = selectedMap->getAttribute<PFP2::VEC3, VERTEX>("position");
+    VertexAttribute<PFP2::VEC3> position = selectedMap->addAttribute<PFP2::VEC3, VERTEX>("position");
+
+    position[d0] = PFP2::VEC3(0.f,0.f,0.f);
+    d0 = selectedMap->phi1(d0);
+    position[d0] = PFP2::VEC3(1.f,0.f,0.f);
+    d0 = selectedMap->phi1(d0);
+    position[d0] = PFP2::VEC3(1.f,1.f,0.f);
+    d0 = selectedMap->phi1(d0);
+    position[d0] = PFP2::VEC3(0.f,1.f,0.f);
+
     VertexAttribute <PFP2::VEC4> color = selectedMap->getAttribute<PFP2::VEC4, VERTEX>("color");
     if(!color.isValid())
     {
@@ -60,46 +59,21 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         mh_selected->registerAttribute(color);
     }
 
+    mh_selected->updateBB(position);
+    mh_selected->notifyAttributeModification(position);
+    mh_selected->notifyConnectivityModification();
+
     createCages(selectedMap);
 
-    MapHandlerGen* mhg_map = m_schnapps->getMap("Cages");
-    MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
-    PFP2::MAP* cage = mh_map->getMap();
-
-    VertexAttribute<PFP2::VEC3> positionCage = cage->getAttribute<PFP2::VEC3, VERTEX>("position");
-
-    for(int i=0; i<6; ++i)
+    for(int i=0; i<10; ++i)
     {
         Algo::Surface::Modelisation::quadranguleFaces<PFP2, VertexAttribute<PFP2::VEC3> >(*selectedMap, position);
-    }
-
-    TraversorV<PFP2::MAP> trav(*selectedMap);
-    for(Dart d = trav.begin(); d != trav.end(); d = trav.next())
-    {
-        position[d][2] = positionCage[m_cages[0][0]][2];
-        if(isInCage(position[d], m_cages[0], cage))
-        {
-            color[d] = PFP2::VEC4(1.,0.2,0.2,1.);
-        }
-        else if(isInCage(position[d], m_cages[1], cage))
-        {
-            color[d] = PFP2::VEC4(0.2,1.,0.2,1.);
-        }
-        else if(isInCage(position[d], m_cages[2], cage))
-        {
-            color[d] = PFP2::VEC4(0.2,0.2,1.,1.);
-        }
-        else if(isInCage(position[d], m_cages[3], cage))
-        {
-            color[d] = PFP2::VEC4(0.2,1.,1.,1.);
-        }
     }
 
     mh_selected->updateBB(position);
     mh_selected->notifyAttributeModification(position);
     mh_selected->notifyConnectivityModification();
-    m_positionVBO->updateData(position);
-    m_colorVBO->updateData(color);
+
     m_toDraw = true;
 
     if(view==m_schnapps->getSelectedView()->getName())
@@ -205,14 +179,8 @@ bool Surface_GenerationMDTool_Plugin::isInCage(PFP2::VEC3 point, std::deque<Dart
 
     VertexAttribute<PFP2::VEC3> position = map->getAttribute<PFP2::VEC3, VERTEX>("position");
 
-//    if(position[cage[0]][0] < point[0] && position[cage[0]][1] < point[1]
-//            && position[cage[1]][0] > point[0] && position[cage[1]][1] > point[1])
-//    {
-//        return true;
-//    }
-
-    if(position[cage[0]][0]-0.0001f < point[0] && position[cage[0]][1]-0.0001f < point[1]
-            && position[cage[1]][0]+0.0001f > point[0] && position[cage[1]][1]+0.0001f > point[1])
+    if(position[cage[0]][0]-FLT_EPSILON < point[0] && position[cage[0]][1]-FLT_EPSILON < point[1]
+            && position[cage[1]][0]+FLT_EPSILON > point[0] && position[cage[1]][1]+FLT_EPSILON > point[1])
     {
         return true;
     }
