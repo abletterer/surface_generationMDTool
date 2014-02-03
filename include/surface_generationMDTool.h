@@ -11,11 +11,12 @@
 
 #include "Utils/Shaders/shaderColorPerVertex.h"
 
+#include "Algo/Modelisation/subdivision.h"
 #include "Algo/Modelisation/voxellisation.h"
 
-#include "coordinates.h"
+#include "Algo/Tiling/Surface/square.h"
 
-#include "Algo/Modelisation/subdivision.h"
+#include "coordinates.h"
 
 namespace CGoGN
 {

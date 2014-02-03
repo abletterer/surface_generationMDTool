@@ -52,20 +52,13 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view)
     d0 = selectedMap->phi1(d0);
     position[d0] = PFP2::VEC3(0.f,1.f,0.f);
 
-    VertexAttribute <PFP2::VEC4> color = selectedMap->getAttribute<PFP2::VEC4, VERTEX>("color");
-    if(!color.isValid())
-    {
-        color = selectedMap->addAttribute<PFP2::VEC4, VERTEX>("color");
-        mh_selected->registerAttribute(color);
-    }
-
     mh_selected->updateBB(position);
     mh_selected->notifyAttributeModification(position);
     mh_selected->notifyConnectivityModification();
 
     createCages(selectedMap);
 
-    for(int i=0; i<10; ++i)
+    for(int i=0; i<6; ++i)
     {
         Algo::Surface::Modelisation::quadranguleFaces<PFP2, VertexAttribute<PFP2::VEC3> >(*selectedMap, position);
     }
@@ -103,17 +96,17 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object)
     }
 
     Dart d1 = map->newFace(4);
-    Dart d0 = map->newFace(4);
-    Dart d2 = map->newFace(4);
-    Dart d3 = map->newFace(4);
+//    Dart d0 = map->newFace(4);
+//    Dart d2 = map->newFace(4);
+//    Dart d3 = map->newFace(4);
 
-    map->sewFaces(d0,d1);
-    d0 = map->phi1(d0);
-    map->sewFaces(d0,d2);
-    d2 = map->phi1(d2);
-    map->sewFaces(d2,d3);
-    d3 = map->phi1(d3);
-    map->sewFaces(d3,map->phi_1(d1));
+//    map->sewFaces(d0,d1);
+//    d0 = map->phi1(d0);
+//    map->sewFaces(d0,d2);
+//    d2 = map->phi1(d2);
+//    map->sewFaces(d2,d3);
+//    d3 = map->phi1(d3);
+//    map->sewFaces(d3,map->phi_1(d1));
 
     //Identification des cages :
     //0 en bas à gauche, 1 en bas à droite, 2 en haut à gauche, 3 en haut à droite
@@ -124,46 +117,57 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object)
 
     Algo::Surface::Modelisation::swapVectorMax(min, max);
 
+//    m_cages.push_back(std::deque<Dart>());
+//    m_cages.back().push_back(d1);   //min
+//    position[d1] = PFP2::VEC3((max[0]+min[0])/2, (max[1]+min[1])/2, min[2]);
+//    d1 = map->phi<11>(d1);
+//    position[d1] = PFP2::VEC3(max[0] + (max[0]-min[0])/20, max[1] + (max[1]-min[1])/20, min[2]);
+//    m_cages.back().push_back(d1);   //max
+
     m_cages.push_back(std::deque<Dart>());
     m_cages.back().push_back(d1);   //min
-    position[d1] = PFP2::VEC3((max[0]+min[0])/2, (max[1]+min[1])/2, min[2]);
-    d1 = map->phi<11>(d1);
+    position[d1] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, min[1] - (max[1]-min[1])/20, min[2]);
+    d1 = map->phi1(d1);
+    position[d1] = PFP2::VEC3(max[0] + (max[0]-min[0])/20, min[1] - (max[1]-min[1])/20, min[2]);
+    d1 = map->phi1(d1);
     position[d1] = PFP2::VEC3(max[0] + (max[0]-min[0])/20, max[1] + (max[1]-min[1])/20, min[2]);
+    d1 = map->phi1(d1);
+    position[d1] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, max[1] + (max[1]-min[1])/20, min[2]);
     m_cages.back().push_back(d1);   //max
 
 
-    m_cages.push_back(std::deque<Dart>());
-    d0 = map->phi1(d0);
-    position[d0] = PFP2::VEC3((max[0]+min[0])/2, min[1] - (max[1]-min[1])/20, min[2]);
-    m_cages.back().push_back(d0);   //min
+//    m_cages.push_back(std::deque<Dart>());
+//    d0 = map->phi1(d0);
+//    position[d0] = PFP2::VEC3((max[0]+min[0])/2, min[1] - (max[1]-min[1])/20, min[2]);
+//    m_cages.back().push_back(d0);   //min
 
-    d0 = map->phi1(d0);
-    position[d0] = PFP2::VEC3(max[0] + (max[0]-min[0])/20, min[1] - (max[1]-min[1])/20, min[2]);
+//    d0 = map->phi1(d0);
+//    position[d0] = PFP2::VEC3(max[0] + (max[0]-min[0])/20, min[1] - (max[1]-min[1])/20, min[2]);
 
-    d0 = map->phi1(d0);
-    position[d0] = PFP2::VEC3(max[0] + (max[0]-min[0])/20, (max[1]+min[1])/2, min[2]);
-    m_cages.back().push_back(d0);  //max
-
-
-    m_cages.push_back(std::deque<Dart>());
-    d3 = map->phi1(d3);
-    position[d3] = PFP2::VEC3((max[0]+min[0])/2, max[1] + (max[1]-min[1])/20, min[2]);
-    m_cages.back().push_back(d3);   //max
-
-    d3 = map->phi1(d3);
-    position[d3] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, max[1] + (max[1]-min[1])/20, min[2]);
-    d3 = map->phi1(d3);
-    m_cages.back().push_front(d3);   //min
+//    d0 = map->phi1(d0);
+//    position[d0] = PFP2::VEC3(max[0] + (max[0]-min[0])/20, (max[1]+min[1])/2, min[2]);
+//    m_cages.back().push_back(d0);  //max
 
 
-    m_cages.push_back(std::deque<Dart>());
-    m_cages.back().push_back(d2);   //max
-    d2 = map->phi1(d2);
-    position[d2] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, (max[1]+min[1])/2, min[2]);
+//    m_cages.push_back(std::deque<Dart>());
+//    d3 = map->phi1(d3);
+//    position[d3] = PFP2::VEC3((max[0]+min[0])/2, max[1] + (max[1]-min[1])/20, min[2]);
+//    m_cages.back().push_back(d3);   //max
 
-    d2 = map->phi1(d2);
-    position[d2] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, min[1] - (max[1]-min[1])/20, min[2]);
-    m_cages.back().push_front(d2);   //min
+//    d3 = map->phi1(d3);
+//    position[d3] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, max[1] + (max[1]-min[1])/20, min[2]);
+//    d3 = map->phi1(d3);
+//    m_cages.back().push_front(d3);   //min
+
+
+//    m_cages.push_back(std::deque<Dart>());
+//    m_cages.back().push_back(d2);   //max
+//    d2 = map->phi1(d2);
+//    position[d2] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, (max[1]+min[1])/2, min[2]);
+
+//    d2 = map->phi1(d2);
+//    position[d2] = PFP2::VEC3(min[0] - (max[0]-min[0])/20, min[1] - (max[1]-min[1])/20, min[2]);
+//    m_cages.back().push_front(d2);   //min
 
     map->initAllOrbitsEmbedding<FACE>();
 
