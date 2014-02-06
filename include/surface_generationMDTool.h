@@ -55,8 +55,6 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private :
-    bool isInCage(PFP2::VEC3 point, std::deque<Dart> cage, PFP2::MAP* map);
-
     void createCages(PFP2::MAP* object, int x, int y);
     void markCages(PFP2::MAP* cage, PFP2::MAP* object);
 
@@ -67,7 +65,7 @@ private slots:
 public slots:
     //Slots for Python calls
     void initializeObject(const QString& view, int x, int y);
-    void initializeCages(const QString& view, int x, int y);
+    void initializeCages(const QString& view, int x, int y, const QString& model = "Model");
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;

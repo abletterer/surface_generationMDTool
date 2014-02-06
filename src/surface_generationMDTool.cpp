@@ -63,9 +63,14 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, int 
 
 }
 
-void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int x, int y)
+void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int x, int y, const QString& model)
 {
-    MapHandlerGen* mhg_selected = m_schnapps->getMap("Model");
+    MapHandlerGen* mhg_selected = m_schnapps->getMap(model);
+
+    if(!mhg_selected)
+    {
+        mhg_selected = m_schnapps->getMap("Model");
+    }
 
     if(mhg_selected)
     {
@@ -131,22 +136,6 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
     mh_map->updateBB(position);
     mh_map->notifyAttributeModification(position);
     mh_map->notifyConnectivityModification();
-}
-
-//Check whether a point is in the given cage
-//Returns the id of the cage
-bool Surface_GenerationMDTool_Plugin::isInCage(PFP2::VEC3 point, std::deque<Dart> cage, PFP2::MAP* map)
-{
-
-    VertexAttribute<PFP2::VEC3> position = map->getAttribute<PFP2::VEC3, VERTEX>("position");
-
-    if(position[cage[0]][0]-FLT_EPSILON < point[0] && position[cage[0]][1]-FLT_EPSILON < point[1]
-            && position[cage[1]][0]+FLT_EPSILON > point[0] && position[cage[1]][1]+FLT_EPSILON > point[1])
-    {
-        return true;
-    }
-
-    return false;
 }
 
 #ifndef DEBUG
