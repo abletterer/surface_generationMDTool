@@ -115,6 +115,9 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
 
     Algo::Surface::Modelisation::swapVectorMax(min, max);
 
+    min += (max-min)/5.f;
+    max -= (max-min)/5.f;
+
     Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, x, y);
     grid.embedIntoGrid(position, x, y);
 
