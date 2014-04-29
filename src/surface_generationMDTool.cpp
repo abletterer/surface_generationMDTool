@@ -63,7 +63,7 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, int 
 
 }
 
-void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int x, int y, const QString& model)
+void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int nbCagesPerLine,  const QString& model)
 {
     MapHandlerGen* mhg_selected = m_schnapps->getMap(model);
 
@@ -77,7 +77,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int x
         MapHandler<PFP2>* mh_selected = static_cast<MapHandler<PFP2>*>(mhg_selected);
         PFP2::MAP* selectedMap = mh_selected->getMap();
 
-        createCages(selectedMap, x, y);
+        createCages(selectedMap, nbCagesPerLine);
 
         if(view==m_schnapps->getSelectedView()->getName())
         {
@@ -86,11 +86,11 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int x
     }
 }
 
-void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int y)
+void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerLine)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Cages", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
-    PFP2::MAP* map = mh_map->getMap();
+    PFP2::MAP* cages = mh_map->getMap();
 
     MapHandlerGen* mhg_vcages = m_schnapps->addMap("VCages", 2);
     MapHandler<PFP2>* mh_vcages = static_cast<MapHandler<PFP2>*>(mhg_vcages);
@@ -103,11 +103,11 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
         exit(-1);
     }
 
-    VertexAttribute<PFP2::VEC3> positionMap = map->getAttribute<PFP2::VEC3, VERTEX>("position") ;
-    if(!positionMap.isValid())
+    VertexAttribute<PFP2::VEC3> positionCages = cages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
+    if(!positionCages.isValid())
     {
-        positionMap = map->addAttribute<PFP2::VEC3, VERTEX>("position");
-        mh_map->registerAttribute(positionMap);
+        positionCages = cages->addAttribute<PFP2::VEC3, VERTEX>("position");
+        mh_map->registerAttribute(positionCages);
     }
 
     VertexAttribute<PFP2::VEC3> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
@@ -117,8 +117,59 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
         mh_vcages->registerAttribute(positionVCages);
     }
 
-    //Identification des cages :
-    //0 en bas à gauche, 1 en bas à droite, 2 en haut à gauche, 3 en haut à droite
+    FaceAttribute<int> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
+    if(!idCageCages.isValid())
+    {
+        idCageCages = cages->addAttribute<int, FACE>("IdCage");
+        mh_map->registerAttribute(idCageCages);
+    }
+
+    FaceAttribute<int> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
+    if(!idCageVCages.isValid())
+    {
+        idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
+        mh_map->registerAttribute(idCageVCages);
+    }
+
+//    Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
+//    PFP2::VEC3 min = bb.min();
+//    PFP2::VEC3 max = bb.max();
+
+//    Algo::Surface::Modelisation::swapVectorMax(min, max);
+
+//    min += (max-min)/2.f + 0.1f;
+//    max -= (max-min)/2.f + 0.1f;
+
+//    Algo::Surface::Tilings::Square::Grid<PFP2> grid(*cages, x, y);
+//    grid.embedIntoGrid(positionMap, x, y);
+
+//    PFP2::MATRIX44 mat;
+//    mat.identity();
+
+//    mat.setSubVectorV<3>(0, 3, PFP2::VEC3(0.,0., 0.));
+
+//    mat(0, 0) = (max[0]-min[0])/x;
+//    mat(1, 1) = (max[1]-min[1])/y;
+
+//    grid.transform(positionMap, mat);
+
+//    min -= (max-min)/2.f + 0.1f;
+//    max += (max-min)/2.f + 0.1f;
+
+//    Algo::Surface::Tilings::Square::Grid<PFP2> grid2(*vcages, x, y);
+//    grid2.embedIntoGrid(positionVCages, x, y);
+
+//    mat.identity();
+
+//    mat.setSubVectorV<3>(0, 3, PFP2::VEC3(0.,0., 0.));
+
+//    mat(0, 0) = (max[0]-min[0])/x;
+//    mat(1, 1) = (max[1]-min[1])/y;
+
+//    grid2.transform(positionVCages, mat);
+
+    cages->initAllOrbitsEmbedding<FACE>();
+    vcages->initAllOrbitsEmbedding<FACE>();
 
     Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
     PFP2::VEC3 min = bb.min();
@@ -126,49 +177,37 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
 
     Algo::Surface::Modelisation::swapVectorMax(min, max);
 
-    min += (max-min)/2.f + 0.1f;
-    max -= (max-min)/2.f + 0.1f;
+    PFP2::REAL width = max[0] - min[0];
+    PFP2::REAL height = max[1] - min[1];
+    PFP2::REAL ratioWH = width/height;
 
-    Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, x, y);
-    grid.embedIntoGrid(positionMap, x, y);
+    PFP2::REAL w = 0.f, h = 0.f;
+    PFP2::REAL stepW = width/nbCagesPerLine, stepH = height/(nbCagesPerLine/ratioWH);
 
-    PFP2::MATRIX44 mat;
-    mat.identity();
+    Dart d, current;
 
-    mat.setSubVectorV<3>(0, 3, PFP2::VEC3(0.,0., 0.));
+    for(int i = 0; i < nbCagesPerLine; ++i)
+    {
+        d = vcages->newFace(4);
+        idCageCages[d] = i;
 
-    mat(0, 0) = (max[0]-min[0])/x;
-    mat(1, 1) = (max[1]-min[1])/y;
+        current = d;
+        do
+        {
+            current = cages->phi1(current);
+        } while (current != d);
+        w += stepW;
+        h += stepH;
+    }
 
-    grid.transform(positionMap, mat);
-
-    min -= (max-min)/2.f + 0.1f;
-    max += (max-min)/2.f + 0.1f;
-
-    Algo::Surface::Tilings::Square::Grid<PFP2> grid2(*vcages, x, y);
-    grid2.embedIntoGrid(positionVCages, x, y);
-
-    mat.identity();
-
-    mat.setSubVectorV<3>(0, 3, PFP2::VEC3(0.,0., 0.));
-
-    mat(0, 0) = (max[0]-min[0])/x;
-    mat(1, 1) = (max[1]-min[1])/y;
-
-    grid2.transform(positionVCages, mat);
-
-    map->enableQuickTraversal<FACE>();
-    map->enableQuickTraversal<VERTEX>();
+    cages->enableQuickTraversal<FACE>();
+    cages->enableQuickTraversal<VERTEX>();
 
     vcages->enableQuickTraversal<FACE>();
     vcages->enableQuickTraversal<VERTEX>();
 
-    map->initAllOrbitsEmbedding<FACE>();
-
-    vcages->initAllOrbitsEmbedding<FACE>();
-
-    mh_map->updateBB(positionMap);
-    mh_map->notifyAttributeModification(positionMap);
+    mh_map->updateBB(positionCages);
+    mh_map->notifyAttributeModification(positionCages);
     mh_map->notifyConnectivityModification();
 
     mh_vcages->updateBB(positionVCages);

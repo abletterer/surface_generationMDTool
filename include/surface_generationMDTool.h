@@ -55,7 +55,7 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private :
-    void createCages(PFP2::MAP* object, int x, int y);
+    void createCages(PFP2::MAP* object, int nbCagesPerLine);
     void markCages(PFP2::MAP* cage, PFP2::MAP* object);
 
 private slots:
@@ -65,7 +65,7 @@ private slots:
 public slots:
     //Slots for Python calls
     void initializeObject(const QString& view, int x, int y);
-    void initializeCages(const QString& view, int x, int y, const QString& model = "Model");
+    void initializeCages(const QString& view, int nbCagesPerLine, const QString& model = "Model");
 
 protected:
     Surface_GenerationMDTool_DockTab* m_dockTab;
