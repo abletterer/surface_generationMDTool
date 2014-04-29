@@ -63,7 +63,7 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, int 
 
 }
 
-void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int nbCagesPerLine,  const QString& model)
+void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int nbCagesPerRow, int nbCagesPerColumn,  const QString& model)
 {
     MapHandlerGen* mhg_selected = m_schnapps->getMap(model);
 
@@ -77,7 +77,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int n
         MapHandler<PFP2>* mh_selected = static_cast<MapHandler<PFP2>*>(mhg_selected);
         PFP2::MAP* selectedMap = mh_selected->getMap();
 
-        createCages(selectedMap, nbCagesPerLine);
+        createCages(selectedMap, nbCagesPerRow, nbCagesPerColumn);
 
         if(view==m_schnapps->getSelectedView()->getName())
         {
@@ -86,7 +86,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int n
     }
 }
 
-void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerLine)
+void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Cages", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
@@ -181,22 +181,41 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
     PFP2::REAL height = max[1] - min[1];
     PFP2::REAL ratioWH = width/height;
 
-    PFP2::REAL w = 0.f, h = 0.f;
-    PFP2::REAL stepW = width/nbCagesPerLine, stepH = height/(nbCagesPerLine/ratioWH);
+    PFP2::REAL w = min[0], h = min[1];
+    PFP2::REAL stepW = width/nbCagesPerRow, stepH = height/(nbCagesPerRow/ratioWH);
 
-    Dart d, current;
+    Dart d;
 
-    for(int i = 0; i < nbCagesPerLine; ++i)
+    PFP2::REAL sqrt2DivBy2 = std::sqrt(2)/2.f;
+
+    for(int i = 0; i < nbCagesPerColumn; ++i)
     {
-        d = vcages->newFace(4);
-        idCageCages[d] = i;
-
-        current = d;
-        do
+        w = min[0];
+        for(int j = 0; j < nbCagesPerRow; ++j)
         {
-            current = cages->phi1(current);
-        } while (current != d);
-        w += stepW;
+            d = cages->newFace(4);
+            idCageCages[d] = j*10+i;
+
+            positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h-(sqrt2DivBy2*stepH/2.f), 0.f);
+            d = cages->phi1(d);
+            positionCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW/2.f), h-(sqrt2DivBy2*stepH/2.f), 0.f);
+            d = cages->phi1(d);
+            positionCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW/2.f), h+(sqrt2DivBy2*stepH/2.f), 0.f);
+            d = cages->phi1(d);
+            positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h+(sqrt2DivBy2*stepH/2.f), 0.f);
+
+            d = vcages->newFace(4);
+            idCageVCages[d] = j*10+i;
+
+            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW), h-(sqrt2DivBy2*stepH), 0.f);
+            d = cages->phi1(d);
+            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW), h-(sqrt2DivBy2*stepH), 0.f);
+            d = cages->phi1(d);
+            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW), h+(sqrt2DivBy2*stepH), 0.f);
+            d = cages->phi1(d);
+            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW), h+(sqrt2DivBy2*stepH), 0.f);
+            w += stepW;
+        }
         h += stepH;
     }
 
