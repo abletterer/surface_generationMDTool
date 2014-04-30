@@ -176,9 +176,8 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
 
     PFP2::REAL width = max[0] - min[0];
     PFP2::REAL height = max[1] - min[1];
-    PFP2::REAL ratioWH = width/height;
 
-    PFP2::REAL stepW = width/nbCagesPerRow, stepH = height/(nbCagesPerRow/ratioWH);
+    PFP2::REAL stepW = width/nbCagesPerRow, stepH = height/nbCagesPerColumn;
     PFP2::REAL w = min[0]+ stepW/2.f, h = min[1]+ stepH/2.f;
 
     Dart d;
