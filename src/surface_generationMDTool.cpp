@@ -168,9 +168,6 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
 
 //    grid2.transform(positionVCages, mat);
 
-    cages->initAllOrbitsEmbedding<FACE>();
-    vcages->initAllOrbitsEmbedding<FACE>();
-
     Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
     PFP2::VEC3 min = bb.min();
     PFP2::VEC3 max = bb.max();
@@ -181,20 +178,20 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
     PFP2::REAL height = max[1] - min[1];
     PFP2::REAL ratioWH = width/height;
 
-    PFP2::REAL w = min[0], h = min[1];
     PFP2::REAL stepW = width/nbCagesPerRow, stepH = height/(nbCagesPerRow/ratioWH);
+    PFP2::REAL w = min[0]+ stepW/2.f, h = min[1]+ stepH/2.f;
 
     Dart d;
 
-    PFP2::REAL sqrt2DivBy2 = std::sqrt(2)/2.f;
+    const PFP2::REAL sqrt2DivBy2 = std::sqrt(2)/2.f;
 
     for(int i = 0; i < nbCagesPerColumn; ++i)
     {
-        w = min[0];
+        w = min[0] + stepW/2.f;
         for(int j = 0; j < nbCagesPerRow; ++j)
         {
             d = cages->newFace(4);
-            idCageCages[d] = j*10+i;
+            idCageCages[d] = i*nbCagesPerRow+j;
 
             positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h-(sqrt2DivBy2*stepH/2.f), 0.f);
             d = cages->phi1(d);
@@ -205,7 +202,7 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
             positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h+(sqrt2DivBy2*stepH/2.f), 0.f);
 
             d = vcages->newFace(4);
-            idCageVCages[d] = j*10+i;
+            idCageVCages[d] = i*nbCagesPerRow+j;
 
             positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW), h-(sqrt2DivBy2*stepH), 0.f);
             d = cages->phi1(d);
@@ -220,17 +217,17 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
     }
 
     cages->enableQuickTraversal<FACE>();
-    cages->enableQuickTraversal<VERTEX>();
 
     vcages->enableQuickTraversal<FACE>();
-    vcages->enableQuickTraversal<VERTEX>();
 
     mh_map->updateBB(positionCages);
     mh_map->notifyAttributeModification(positionCages);
+    mh_map->notifyAttributeModification(idCageCages);
     mh_map->notifyConnectivityModification();
 
     mh_vcages->updateBB(positionVCages);
     mh_vcages->notifyAttributeModification(positionVCages);
+    mh_map->notifyAttributeModification(idCageVCages);
     mh_vcages->notifyConnectivityModification();
 }
 
