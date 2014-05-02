@@ -35,7 +35,7 @@ void Surface_GenerationMDTool_Plugin::drawMap(View *view, MapHandlerGen *map)
 {
 }
 
-void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, int x, int y)
+void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, const int x, const int y)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Model", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
@@ -63,21 +63,16 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, int 
 
 }
 
-void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int nbCagesPerRow, int nbCagesPerColumn,  const QString& model)
+void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const int nbCagesPerRow, const int nbCagesPerColumn, const float scale)
 {
-    MapHandlerGen* mhg_selected = m_schnapps->getMap(model);
-
-    if(!mhg_selected)
-    {
-        mhg_selected = m_schnapps->getMap("Model");
-    }
+    MapHandlerGen* mhg_selected = m_schnapps->getMap("Model");
 
     if(mhg_selected)
     {
         MapHandler<PFP2>* mh_selected = static_cast<MapHandler<PFP2>*>(mhg_selected);
         PFP2::MAP* selectedMap = mh_selected->getMap();
 
-        createCages(selectedMap, nbCagesPerRow, nbCagesPerColumn);
+        createCages(selectedMap, nbCagesPerRow, nbCagesPerColumn, scale);
 
         if(view==m_schnapps->getSelectedView()->getName())
         {
@@ -86,7 +81,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, int n
     }
 }
 
-void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn)
+void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, const PFP2::REAL scale)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Cages", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
@@ -131,43 +126,6 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
         mh_map->registerAttribute(idCageVCages);
     }
 
-//    Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
-//    PFP2::VEC3 min = bb.min();
-//    PFP2::VEC3 max = bb.max();
-
-//    Algo::Surface::Modelisation::swapVectorMax(min, max);
-
-//    min += (max-min)/2.f + 0.1f;
-//    max -= (max-min)/2.f + 0.1f;
-
-//    Algo::Surface::Tilings::Square::Grid<PFP2> grid(*cages, x, y);
-//    grid.embedIntoGrid(positionMap, x, y);
-
-//    PFP2::MATRIX44 mat;
-//    mat.identity();
-
-//    mat.setSubVectorV<3>(0, 3, PFP2::VEC3(0.,0., 0.));
-
-//    mat(0, 0) = (max[0]-min[0])/x;
-//    mat(1, 1) = (max[1]-min[1])/y;
-
-//    grid.transform(positionMap, mat);
-
-//    min -= (max-min)/2.f + 0.1f;
-//    max += (max-min)/2.f + 0.1f;
-
-//    Algo::Surface::Tilings::Square::Grid<PFP2> grid2(*vcages, x, y);
-//    grid2.embedIntoGrid(positionVCages, x, y);
-
-//    mat.identity();
-
-//    mat.setSubVectorV<3>(0, 3, PFP2::VEC3(0.,0., 0.));
-
-//    mat(0, 0) = (max[0]-min[0])/x;
-//    mat(1, 1) = (max[1]-min[1])/y;
-
-//    grid2.transform(positionVCages, mat);
-
     Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
     PFP2::VEC3 min = bb.min();
     PFP2::VEC3 max = bb.max();
@@ -203,13 +161,13 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
             d = vcages->newFace(4);
             idCageVCages[d] = i*nbCagesPerRow+j;
 
-            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW), h-(sqrt2DivBy2*stepH), 0.f);
+            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW)*scale/2.f, h-(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
             d = cages->phi1(d);
-            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW), h-(sqrt2DivBy2*stepH), 0.f);
+            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW)*scale/2.f, h-(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
             d = cages->phi1(d);
-            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW), h+(sqrt2DivBy2*stepH), 0.f);
+            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW)*scale/2.f, h+(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
             d = cages->phi1(d);
-            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW), h+(sqrt2DivBy2*stepH), 0.f);
+            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW)*scale/2.f, h+(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
             w += stepW;
         }
         h += stepH;
