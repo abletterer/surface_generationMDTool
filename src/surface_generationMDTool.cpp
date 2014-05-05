@@ -35,7 +35,7 @@ void Surface_GenerationMDTool_Plugin::drawMap(View *view, MapHandlerGen *map)
 {
 }
 
-void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, const int x, const int y)
+void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Model", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
@@ -47,11 +47,41 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, cons
         position = map->addAttribute<PFP2::VEC3, VERTEX>("position");
     }
 
-    Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, x, y);
-    grid.embedIntoGrid(position, x, y);
+    VertexAttribute <PFP2::VEC3> colorMap = map->getAttribute<PFP2::VEC3, VERTEX>("color");
+    if(!colorMap.isValid())
+    {
+        colorMap = map->addAttribute<PFP2::VEC3, VERTEX>("color");
+        mh_map->registerAttribute(colorMap);
+    }
+
+    QImage image;
+    if(!image.load("/home/bletterer/Images/cgogn.png", "PNG"))
+    {
+        CGoGNout << "Image has not been loaded correctly" << CGoGNendl;
+        return;
+    }
+
+    int x = image.width(), y = image.height();
+
+    Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, x-1, y-1);
+    grid.embedIntoGrid(position, x-1, y-1);
+
+    std::vector<Dart> vDarts = grid.getVertexDarts();
+
+    QRgb pixel;
+
+    for(int i = 0; i < x; ++i)
+    {
+        for(int j = 0; j < y; ++j)
+        {
+            pixel = image.pixel(i,(y-j)-1);
+            colorMap[vDarts[j*x+i]] = PFP2::VEC3(qRed(pixel), qGreen(pixel), qBlue(pixel));
+        }
+    }
 
     mh_map->updateBB(position);
     mh_map->notifyAttributeModification(position);
+    mh_map->notifyAttributeModification(colorMap);
     mh_map->notifyConnectivityModification();
 
     map->enableQuickTraversal<VERTEX>();

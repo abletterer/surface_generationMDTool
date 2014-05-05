@@ -18,6 +18,8 @@
 
 #include "coordinates.h"
 
+#include "qimage.h"
+
 namespace CGoGN
 {
 
@@ -64,7 +66,7 @@ private slots:
 
 public slots:
     //Slots for Python calls
-    void initializeObject(const QString& view, const int x, const int y);
+    void initializeObject(const QString& view);
     void initializeCages(const QString& view, const int nbCagesPerRow, const int nbCagesPerColumn, const float scale);
 
 protected:
