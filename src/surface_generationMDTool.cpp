@@ -35,7 +35,7 @@ void Surface_GenerationMDTool_Plugin::drawMap(View *view, MapHandlerGen *map)
 {
 }
 
-void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view)
+void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, const QString& filename)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Model", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
@@ -55,7 +55,7 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view)
     }
 
     QImage image;
-    if(!image.load("/home/bletterer/Images/cgogn.png", "PNG"))
+    if(!image.load(filename, "PNG"))
     {
         CGoGNout << "Image has not been loaded correctly" << CGoGNendl;
         return;
@@ -75,7 +75,7 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view)
         for(int j = 0; j < y; ++j)
         {
             pixel = image.pixel(i,(y-j)-1);
-            colorMap[vDarts[j*x+i]] = PFP2::VEC3(qRed(pixel), qGreen(pixel), qBlue(pixel));
+            colorMap[vDarts[j*x+i]] = PFP2::VEC3(qRed(pixel)/255.f, qGreen(pixel)/255.f, qBlue(pixel)/255.f);
         }
     }
 
@@ -168,7 +168,10 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
     PFP2::REAL stepW = width/nbCagesPerRow, stepH = height/nbCagesPerColumn;
     PFP2::REAL w = min[0]+ stepW/2.f, h = min[1]+ stepH/2.f;
 
-    Dart d;
+    Dart d, current, previous, next;
+    std::vector<PFP2::VEC3> newPosition;
+    newPosition.resize(4);
+    PFP2::VEC3 previousEdgeNormal, nextEdgeNormal;
 
     const PFP2::REAL sqrt2DivBy2 = std::sqrt(2)/2.f;
 
@@ -179,7 +182,6 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
         {
             d = cages->newFace(4);
             idCageCages[d] = i*nbCagesPerRow+j;
-
             positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h-(sqrt2DivBy2*stepH/2.f), 0.f);
             d = cages->phi1(d);
             positionCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW/2.f), h-(sqrt2DivBy2*stepH/2.f), 0.f);
@@ -187,6 +189,34 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
             positionCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW/2.f), h+(sqrt2DivBy2*stepH/2.f), 0.f);
             d = cages->phi1(d);
             positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h+(sqrt2DivBy2*stepH/2.f), 0.f);
+
+            current = d;
+            int k = 0;
+
+            //Calcul des normales aux sommets de la petite cage
+            //On prend comme base les normales aux arêtes, ici le vecteur perpendiculaire à l'arête
+//            do
+//            {
+//                previous = cages->phi_1(d);
+//                next = cages->phi1(d);
+
+//                previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
+//                //previousEdgeNormal.normalize();
+//                nextEdgeNormal = PFP2::VEC3(-(positionCages[next][1]-positionCages[current][1]), positionCages[next][0]-positionCages[current][0], 0.f);
+//                //nextEdgeNormal.normalize();
+
+//                newPosition[k] = positionCages[d]+((previousEdgeNormal+nextEdgeNormal)/2.f);
+//                current = cages->phi1(current);
+//                ++k;
+//            } while(current != d);
+
+//            d = vcages->newFace(4);
+//            idCageVCages[d] = i*nbCagesPerRow+j;
+//            for(k = 0; k < newPosition.size(); ++k)
+//            {
+//                positionVCages[d] = newPosition[k];
+//                d = vcages->phi1(d);
+//            }
 
             d = vcages->newFace(4);
             idCageVCages[d] = i*nbCagesPerRow+j;

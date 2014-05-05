@@ -66,7 +66,7 @@ private slots:
 
 public slots:
     //Slots for Python calls
-    void initializeObject(const QString& view);
+    void initializeObject(const QString& view, const QString& filename);
     void initializeCages(const QString& view, const int nbCagesPerRow, const int nbCagesPerColumn, const float scale);
 
 protected:
