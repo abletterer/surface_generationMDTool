@@ -57,7 +57,7 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private :
-    void createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, const PFP2::REAL scale);
+    void createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale);
     void markCages(PFP2::MAP* cage, PFP2::MAP* object);
 
 private slots:

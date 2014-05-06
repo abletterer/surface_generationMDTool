@@ -51,11 +51,13 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, cons
     if(!colorMap.isValid())
     {
         colorMap = map->addAttribute<PFP2::VEC3, VERTEX>("color");
-        mh_map->registerAttribute(colorMap);
     }
 
+    QString extension = filename.mid(filename.lastIndexOf('.'));
+    extension.toUpper();
+
     QImage image;
-    if(!image.load(filename, "PNG"))
+    if(!image.load(filename, extension.toUtf8().constData()))
     {
         CGoGNout << "Image has not been loaded correctly" << CGoGNendl;
         return;
@@ -111,7 +113,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
     }
 }
 
-void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, const PFP2::REAL scale)
+void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Cages", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
@@ -142,18 +144,22 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
         mh_vcages->registerAttribute(positionVCages);
     }
 
+    VertexAttribute<PFP2::VEC3> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+    if(!linkCagesVCages.isValid())
+    {
+        linkCagesVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+    }
+
     FaceAttribute<int> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageCages.isValid())
     {
         idCageCages = cages->addAttribute<int, FACE>("IdCage");
-        mh_map->registerAttribute(idCageCages);
     }
 
     FaceAttribute<int> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageVCages.isValid())
     {
         idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
-        mh_map->registerAttribute(idCageVCages);
     }
 
     Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
@@ -169,11 +175,17 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
     PFP2::REAL w = min[0]+ stepW/2.f, h = min[1]+ stepH/2.f;
 
     Dart d, current, previous, next;
-    std::vector<PFP2::VEC3> newPosition;
+    std::vector<PFP2::VEC3> newPosition, linkVector;
     newPosition.resize(4);
+    linkVector.resize(4);
     PFP2::VEC3 previousEdgeNormal, nextEdgeNormal;
 
     const PFP2::REAL sqrt2DivBy2 = std::sqrt(2)/2.f;
+
+    if(scale-1.f <= FLT_EPSILON)
+    {
+        scale += 0.05f;
+    }
 
     for(int i = 0; i < nbCagesPerColumn; ++i)
     {
@@ -193,41 +205,52 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
             current = d;
             int k = 0;
 
+            PFP2::REAL moyNorm;
+
             //Calcul des normales aux sommets de la petite cage
-            //On prend comme base les normales aux arêtes, ici le vecteur perpendiculaire à l'arête
-//            do
-//            {
-//                previous = cages->phi_1(d);
-//                next = cages->phi1(d);
+            //On prend comme base les normales des arêtes incidentes au sommet considéré, ici le vecteur perpendiculaire à chacune des 2 arêtes
+            //On normalise les vecteurs et on leur attribue une norme commune correspond à la moyenne de leur anciennes normes
+            do
+            {
+                previous = cages->phi_1(current);
+                next = cages->phi1(current);
 
-//                previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
-//                //previousEdgeNormal.normalize();
-//                nextEdgeNormal = PFP2::VEC3(-(positionCages[next][1]-positionCages[current][1]), positionCages[next][0]-positionCages[current][0], 0.f);
-//                //nextEdgeNormal.normalize();
+                previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
+                moyNorm = previousEdgeNormal.normalize();
+                nextEdgeNormal = PFP2::VEC3(-(positionCages[current][1]-positionCages[next][1]), positionCages[current][0]-positionCages[next][0], 0.f);
+                moyNorm += nextEdgeNormal.normalize();
+                moyNorm /= 2.f;
 
-//                newPosition[k] = positionCages[d]+((previousEdgeNormal+nextEdgeNormal)/2.f);
-//                current = cages->phi1(current);
-//                ++k;
-//            } while(current != d);
+                previousEdgeNormal *= moyNorm;
+                nextEdgeNormal *= moyNorm;
+
+                linkVector[k] = ((previousEdgeNormal+nextEdgeNormal)/2.f)*(scale-1.f);
+                newPosition[k] = positionCages[current]+linkVector[k];
+
+                current = cages->phi1(current);
+                ++k;
+            } while(current != d);
+
+            d = vcages->newFace(cages->faceDegree(d));
+            idCageVCages[d] = i*nbCagesPerRow+j;
+
+            for(k = 0; k < newPosition.size(); ++k)
+            {
+                positionVCages[d] = newPosition[k];
+                linkCagesVCages[d] = linkVector[k];
+                d = vcages->phi1(d);
+            }
 
 //            d = vcages->newFace(4);
 //            idCageVCages[d] = i*nbCagesPerRow+j;
-//            for(k = 0; k < newPosition.size(); ++k)
-//            {
-//                positionVCages[d] = newPosition[k];
-//                d = vcages->phi1(d);
-//            }
 
-            d = vcages->newFace(4);
-            idCageVCages[d] = i*nbCagesPerRow+j;
-
-            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW)*scale/2.f, h-(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
-            d = cages->phi1(d);
-            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW)*scale/2.f, h-(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
-            d = cages->phi1(d);
-            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW)*scale/2.f, h+(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
-            d = cages->phi1(d);
-            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW)*scale/2.f, h+(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
+//            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW)*scale/2.f, h-(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
+//            d = cages->phi1(d);
+//            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW)*scale/2.f, h-(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
+//            d = cages->phi1(d);
+//            positionVCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW)*scale/2.f, h+(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
+//            d = cages->phi1(d);
+//            positionVCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW)*scale/2.f, h+(sqrt2DivBy2*stepH)*scale/2.f, 0.f);
             w += stepW;
         }
         h += stepH;
