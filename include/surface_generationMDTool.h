@@ -3,6 +3,8 @@
 
 #include "plugin_interaction.h"
 
+#include <QKeyEvent>
+
 #include "surface_generationMDTool_dockTab.h"
 
 #include "Geometry/bounding_box.h"
@@ -10,6 +12,7 @@
 #include "Topology/generic/traversor2.h"
 
 #include "Utils/Shaders/shaderColorPerVertex.h"
+#include "Utils/drawer.h"
 
 #include "Algo/Modelisation/subdivision.h"
 #include "Algo/Modelisation/voxellisation.h"
@@ -43,12 +46,12 @@ public:
 	virtual bool enable();
 	virtual void disable();
 
-    virtual void draw(View* view) {}
-    virtual void drawMap(View* view, MapHandlerGen* map);
+    virtual void draw(View* view);
+    virtual void drawMap(View* view, MapHandlerGen* map) {}
 
-    virtual void keyPress(View* view, QKeyEvent* event) {}
+    virtual void keyPress(View* view, QKeyEvent* event);
     virtual void keyRelease(View* view, QKeyEvent* event) {}
-    virtual void mousePress(View* view, QMouseEvent* event) {}
+    virtual void mousePress(View* view, QMouseEvent* event);
     virtual void mouseRelease(View* view, QMouseEvent* event) {}
     virtual void mouseMove(View* view, QMouseEvent* event) {}
     virtual void wheelEvent(View* view, QWheelEvent* event) {}
@@ -58,7 +61,9 @@ public:
 
 private :
     void createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale);
-    void markCages(PFP2::MAP* cage, PFP2::MAP* object);
+
+    void addNewFace();
+    void clearCages();
 
 private slots:
 
@@ -77,7 +82,14 @@ protected:
     Utils::VBO* m_positionVBO;
     Utils::VBO* m_colorVBO;
 
+    Utils::Drawer* m_drawer;
+
     bool m_toDraw;
+
+    bool m_addFaces;
+    bool m_addVertices;
+
+    std::vector<PFP2::VEC3> m_verticesCurrentlyAdded;
 };
 
 } // namespace SCHNApps
