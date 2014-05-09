@@ -144,7 +144,7 @@ void Surface_GenerationMDTool_Plugin::mousePress(View* view, QMouseEvent* event)
     }
 }
 
-void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, const QString& filename)
+void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, const QString& filename, int x, int y)
 {
     MapHandlerGen* mhg_map = m_schnapps->addMap("Model", 2);
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
@@ -162,32 +162,40 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, cons
         colorMap = map->addAttribute<PFP2::VEC3, VERTEX>("color");
     }
 
-    QString extension = filename.mid(filename.lastIndexOf('.'));
-    extension.toUpper();
-
-    QImage image;
-    if(!image.load(filename, extension.toUtf8().constData()))
+    if(!filename.isEmpty())
     {
-        CGoGNout << "Image has not been loaded correctly" << CGoGNendl;
-        return;
-    }
+        QString extension = filename.mid(filename.lastIndexOf('.'));
+        extension.toUpper();
 
-    int x = image.width(), y = image.height();
-
-    Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, x-1, y-1);
-    grid.embedIntoGrid(position, x-1, y-1);
-
-    std::vector<Dart> vDarts = grid.getVertexDarts();
-
-    QRgb pixel;
-
-    for(int i = 0; i < x; ++i)
-    {
-        for(int j = 0; j < y; ++j)
+        QImage image;
+        if(!image.load(filename, extension.toUtf8().constData()))
         {
-            pixel = image.pixel(i,(y-j)-1);
-            colorMap[vDarts[j*x+i]] = PFP2::VEC3(qRed(pixel)/255.f, qGreen(pixel)/255.f, qBlue(pixel)/255.f);
+            CGoGNout << "Image has not been loaded correctly" << CGoGNendl;
+            return;
         }
+
+        int imageX = image.width(), imageY = image.height();
+
+        Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, imageX-1, imageY-1);
+        grid.embedIntoGrid(position, imageX-1, imageY-1);
+
+        std::vector<Dart> vDarts = grid.getVertexDarts();
+
+        QRgb pixel;
+
+        for(int i = 0; i < imageX; ++i)
+        {
+            for(int j = 0; j < imageY; ++j)
+            {
+                pixel = image.pixel(i,(imageY-j)-1);
+                colorMap[vDarts[j*imageX+i]] = PFP2::VEC3(qRed(pixel)/255.f, qGreen(pixel)/255.f, qBlue(pixel)/255.f);
+            }
+        }
+    }
+    else
+    {
+        Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, x, y);
+        grid.embedIntoGrid(position, x, y);
     }
 
     mh_map->updateBB(position);
@@ -306,6 +314,7 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
 
     for(int i = 0; i < nbCagesPerColumn; ++i)
     {
+//        w = min[0] + stepW;
         w = min[0] + stepW/2.f;
         for(int j = 0; j < nbCagesPerRow; ++j)
         {
@@ -357,8 +366,10 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
                 linkCagesVCages[d] = linkVector[k];
                 d = vcages->phi1(d);
             }
+//            w += stepW/2.f;
             w += stepW;
         }
+//        h += stepH/2.f;
         h += stepH;
     }
 
