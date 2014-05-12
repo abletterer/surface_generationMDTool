@@ -509,11 +509,9 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
 
 void Surface_GenerationMDTool_Plugin::clearCages()
 {
-    MapHandlerGen* mhg_tmp = m_schnapps->getMap("Cages");
-    MapHandler<PFP2>* mh_tmp = static_cast<MapHandler<PFP2>*>(mhg_tmp);
-    PFP2::MAP* tmp = mh_tmp->getMap();
-
-    tmp->getAttributeHandlers();
+//    MapHandlerGen* mhg_tmp = m_schnapps->getMap("Cages");
+//    MapHandler<PFP2>* mh_tmp = static_cast<MapHandler<PFP2>*>(mhg_tmp);
+//    PFP2::MAP* tmp = mh_tmp->getMap();
 
 //    VertexAttribute<PFP2::VEC3> positionTmp = tmp->getAttribute<PFP2::VEC3, VERTEX>("position") ;
 //    if(!positionTmp.isValid())
@@ -546,7 +544,7 @@ void Surface_GenerationMDTool_Plugin::clearCages()
 //    {
 //        AttributeMultiVectorGen* attribute = container.getVirtualDataVector(i);
 //        mh_tmp->updateVBO(attribute);
-//        mh_tmp->notifyAttributeModification(attribute);
+//        emit(mh_tmp->attributeModified(attribute->getOrbit(), QString::fromStdString(attribute->getName())));
 //    }
 
 //    mh_tmp->notifyConnectivityModification();
