@@ -19,6 +19,8 @@
 
 #include "Algo/Tiling/Surface/square.h"
 
+#include "mapHandler.h"
+
 #include "coordinates.h"
 
 #include "qimage.h"
@@ -60,7 +62,7 @@ public:
     virtual void viewUnlinked(View* view) {}
 
 private :
-    void createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale);
+    void createCages(MapHandler<PFP2>* mh_object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale);
 
     void addNewFace();
     void clearCages();

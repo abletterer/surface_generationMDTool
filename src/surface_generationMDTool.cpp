@@ -1,7 +1,5 @@
 #include "surface_generationMDTool.h"
 
-#include "mapHandler.h"
-
 namespace CGoGN
 {
 
@@ -154,6 +152,7 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, cons
     if(!position.isValid())
     {
         position = map->addAttribute<PFP2::VEC3, VERTEX>("position");
+        mh_map->registerAttribute(position);
     }
 
     VertexAttribute <PFP2::VEC3> colorMap = map->getAttribute<PFP2::VEC3, VERTEX>("color");
@@ -221,7 +220,7 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
         MapHandler<PFP2>* mh_selected = static_cast<MapHandler<PFP2>*>(mhg_selected);
         PFP2::MAP* selectedMap = mh_selected->getMap();
 
-        createCages(selectedMap, nbCagesPerRow, nbCagesPerColumn, scale);
+        createCages(mh_selected, nbCagesPerRow, nbCagesPerColumn, scale);
 
         if(view==m_schnapps->getSelectedView()->getName())
         {
@@ -230,16 +229,18 @@ void Surface_GenerationMDTool_Plugin::initializeCages(const QString& view, const
     }
 }
 
-void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale)
+void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale)
 {
+    PFP2::MAP* object = mh_object->getMap();
+
     MapHandlerGen* mhg_cages = m_schnapps->getMap("Cages");
     if(!mhg_cages)
     {
         mhg_cages = m_schnapps->addMap("Cages", 2);
     }
+
     MapHandler<PFP2>* mh_cages = static_cast<MapHandler<PFP2>*>(mhg_cages);
     PFP2::MAP* cages = mh_cages->getMap();
-
     MapHandlerGen* mhg_vcages = m_schnapps->getMap("VCages");
     if(!mhg_vcages)
     {
@@ -247,6 +248,7 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
     }
     MapHandler<PFP2>* mh_vcages = static_cast<MapHandler<PFP2>*>(mhg_vcages);
     PFP2::MAP* vcages = mh_vcages->getMap();
+
 
     VertexAttribute<PFP2::VEC3> positionObject = object->getAttribute<PFP2::VEC3, VERTEX>("position");
     if(!positionObject.isValid())
@@ -273,18 +275,21 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
     if(!linkCagesVCages.isValid())
     {
         linkCagesVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+        mh_vcages->registerAttribute(linkCagesVCages);
     }
 
     FaceAttribute<int> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageCages.isValid())
     {
         idCageCages = cages->addAttribute<int, FACE>("IdCage");
+        mh_cages->registerAttribute(idCageCages);
     }
 
     FaceAttribute<int> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageVCages.isValid())
     {
         idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
+        mh_vcages->registerAttribute(idCageVCages);
     }
 
     Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
@@ -329,32 +334,49 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
             positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h+(sqrt2DivBy2*stepH/2.f), 0.f);
 
             current = d;
-            int k = 0;
+            unsigned int k = 0;
 
-            PFP2::REAL moyNorm;
+            PFP2::REAL moyNorm(0.f);
 
             //Calcul des normales aux sommets de la petite cage
             //On prend comme base les normales des arêtes incidentes au sommet considéré, ici le vecteur perpendiculaire à chacune des 2 arêtes
             //On normalise les vecteurs et on leur attribue une norme commune correspond à la moyenne de leur anciennes normes
+
+            std::vector<PFP2::VEC3> edgeNormal;
+            edgeNormal.reserve(cages->faceDegree(d)*2);
+
             do
             {
                 previous = cages->phi_1(current);
                 next = cages->phi1(current);
 
                 previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
-                moyNorm = previousEdgeNormal.normalize();
+                moyNorm += previousEdgeNormal.normalize();
                 nextEdgeNormal = PFP2::VEC3(-(positionCages[current][1]-positionCages[next][1]), positionCages[current][0]-positionCages[next][0], 0.f);
                 moyNorm += nextEdgeNormal.normalize();
-                moyNorm /= 2.f;
 
-                previousEdgeNormal *= moyNorm;
-                nextEdgeNormal *= moyNorm;
+                edgeNormal.push_back(previousEdgeNormal);
+                edgeNormal.push_back(nextEdgeNormal);
+
+                current = cages->phi1(current);
+            } while(current != d);
+
+            moyNorm /= edgeNormal.size();
+
+            current = d;
+            int l = 0;
+
+            do
+            {
+                previousEdgeNormal = edgeNormal[l]*moyNorm;
+                nextEdgeNormal = edgeNormal[l+1]*moyNorm;
 
                 linkVector[k] = ((previousEdgeNormal+nextEdgeNormal)/2.f)*(scale-1.f);
                 newPosition[k] = positionCages[current]+linkVector[k];
 
                 current = cages->phi1(current);
                 ++k;
+                l += 2;
             } while(current != d);
 
             d = vcages->newFace(cages->faceDegree(d));
@@ -379,12 +401,10 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
 
     mh_cages->updateBB(positionCages);
     mh_cages->notifyAttributeModification(positionCages);
-    mh_cages->notifyAttributeModification(idCageCages);
     mh_cages->notifyConnectivityModification();
 
     mh_vcages->updateBB(positionVCages);
     mh_vcages->notifyAttributeModification(positionVCages);
-    mh_cages->notifyAttributeModification(idCageVCages);
     mh_vcages->notifyConnectivityModification();
 }
 
@@ -413,35 +433,40 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         if(!positionCages.isValid())
         {
             positionCages = cages->addAttribute<PFP2::VEC3, VERTEX>("position");
+            mh_cages->registerAttribute(positionCages);
         }
 
         VertexAttribute<PFP2::VEC3> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position");
         if(!positionVCages.isValid())
         {
             positionVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("position");
+            mh_vcages->registerAttribute(positionVCages);
         }
 
         VertexAttribute<PFP2::VEC3> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
         if(!linkCagesVCages.isValid())
         {
             linkCagesVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+            mh_vcages->registerAttribute(linkCagesVCages);
         }
 
         FaceAttribute<int> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
         if(!idCageCages.isValid())
         {
             idCageCages = cages->addAttribute<int, FACE>("IdCage");
+            mh_cages->registerAttribute(idCageCages);
         }
 
         FaceAttribute<int> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
         if(!idCageVCages.isValid())
         {
             idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
+            mh_vcages->registerAttribute(idCageVCages);
         }
 
         Dart d = cages->newFace(m_verticesCurrentlyAdded.size());
 
-        for(int i = 0; i < m_verticesCurrentlyAdded.size(); ++i)
+        for(unsigned int i = 0; i < m_verticesCurrentlyAdded.size(); ++i)
         {
             //Les sommets sont ajoutés dans l'ordre
             positionCages[d] = m_verticesCurrentlyAdded[i];
@@ -451,11 +476,9 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         int idCage = d.label();
         idCageCages[d] = idCage;
 
-        CGoGNout << idCage << CGoGNendl;
-
         Dart current = d, previous, next;
         PFP2::VEC3 previousEdgeNormal, nextEdgeNormal;
-        PFP2::REAL moyNorm, scale = 1.5f;
+        PFP2::REAL moyNorm(0.f), scale(1.5f);
         std::vector<PFP2::VEC3> linkVector, newPosition;
         linkVector.resize(cages->faceDegree(d));
         newPosition.resize(cages->faceDegree(d));
@@ -463,26 +486,42 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         //Calcul des normales aux sommets de la petite cage
         //On prend comme base les normales des arêtes incidentes au sommet considéré, ici le vecteur perpendiculaire à chacune des 2 arêtes
         //On normalise les vecteurs et on leur attribue une norme commune correspond à la moyenne de leur anciennes normes
-        int i = 0;
+
+        std::vector<PFP2::VEC3> edgeNormal;
+        edgeNormal.reserve(cages->faceDegree(d)*2);
+
         do
         {
             previous = cages->phi_1(current);
             next = cages->phi1(current);
 
             previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
-            moyNorm = previousEdgeNormal.normalize();
+            moyNorm += previousEdgeNormal.normalize();
             nextEdgeNormal = PFP2::VEC3(-(positionCages[current][1]-positionCages[next][1]), positionCages[current][0]-positionCages[next][0], 0.f);
             moyNorm += nextEdgeNormal.normalize();
-            moyNorm /= 2.f;
 
-            previousEdgeNormal *= moyNorm;
-            nextEdgeNormal *= moyNorm;
+            edgeNormal.push_back(previousEdgeNormal);
+            edgeNormal.push_back(nextEdgeNormal);
+
+            current = cages->phi1(current);
+        } while(current != d);
+
+        moyNorm /= edgeNormal.size();
+
+        current = d;
+
+        int i = 0, j = 0;
+        do
+        {
+            previousEdgeNormal = edgeNormal[j]*moyNorm;
+            nextEdgeNormal = edgeNormal[j+1]*moyNorm;
 
             linkVector[i] = ((previousEdgeNormal+nextEdgeNormal)/2.f)*(scale-1.f);
             newPosition[i] = positionCages[current]+linkVector[i];
 
             current = cages->phi1(current);
             ++i;
+            j += 2;
         } while(current != d);
 
         d = vcages->newFace(cages->faceDegree(d));
@@ -497,60 +536,19 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
 
         mh_cages->updateBB(positionCages);
         mh_cages->notifyAttributeModification(positionCages);
-        mh_cages->notifyAttributeModification(idCageCages);
         mh_cages->notifyConnectivityModification();
 
         mh_vcages->updateBB(positionVCages);
         mh_vcages->notifyAttributeModification(positionVCages);
-        mh_cages->notifyAttributeModification(idCageVCages);
         mh_vcages->notifyConnectivityModification();
     }
 }
 
 void Surface_GenerationMDTool_Plugin::clearCages()
 {
-//    MapHandlerGen* mhg_tmp = m_schnapps->getMap("Cages");
+//    MapHandlerGen* mhg_tmp = m_schnapps->getMap("VCages");
 //    MapHandler<PFP2>* mh_tmp = static_cast<MapHandler<PFP2>*>(mhg_tmp);
 //    PFP2::MAP* tmp = mh_tmp->getMap();
-
-//    VertexAttribute<PFP2::VEC3> positionTmp = tmp->getAttribute<PFP2::VEC3, VERTEX>("position") ;
-//    if(!positionTmp.isValid())
-//    {
-//        CGoGNout << "Tmp position attribute not valid" << CGoGNendl;
-//        return;
-//    }
-
-//    tmp->clear(false);
-
-//    mh_tmp->notifyAttributeModification(positionTmp);
-//    mh_tmp->notifyConnectivityModification();
-
-//    mhg_tmp = m_schnapps->getMap("VCages");
-//    mh_tmp = static_cast<MapHandler<PFP2>*>(mhg_tmp);
-//    tmp = mh_tmp->getMap();
-
-//    positionTmp = tmp->getAttribute<PFP2::VEC3, VERTEX>("position") ;
-//    if(!positionTmp.isValid())
-//    {
-//        CGoGNout << "Tmp position attribute not valid" << CGoGNendl;
-//        return;
-//    }
-
-//    tmp->clear(false);
-
-//    AttributeContainer container = tmp->getAttributeContainer(VERTEX);
-
-//    for(int i = 0; i < container.getNbAttributes(); ++i)
-//    {
-//        AttributeMultiVectorGen* attribute = container.getVirtualDataVector(i);
-//        mh_tmp->updateVBO(attribute);
-//        emit(mh_tmp->attributeModified(attribute->getOrbit(), QString::fromStdString(attribute->getName())));
-//    }
-
-//    mh_tmp->notifyConnectivityModification();
-
-//    m_schnapps->getSelectedView()->updateGL();
-
 }
 
 #ifndef DEBUG
