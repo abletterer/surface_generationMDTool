@@ -329,32 +329,49 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
             positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h+(sqrt2DivBy2*stepH/2.f), 0.f);
 
             current = d;
-            int k = 0;
+            unsigned int k = 0;
 
-            PFP2::REAL moyNorm;
+            PFP2::REAL moyNorm(0.f);
 
             //Calcul des normales aux sommets de la petite cage
             //On prend comme base les normales des arêtes incidentes au sommet considéré, ici le vecteur perpendiculaire à chacune des 2 arêtes
             //On normalise les vecteurs et on leur attribue une norme commune correspond à la moyenne de leur anciennes normes
+
+            std::vector<PFP2::VEC3> edgeNormal;
+            edgeNormal.reserve(cages->faceDegree(d)*2);
+
             do
             {
                 previous = cages->phi_1(current);
                 next = cages->phi1(current);
 
                 previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
-                moyNorm = previousEdgeNormal.normalize();
+                moyNorm += previousEdgeNormal.normalize();
                 nextEdgeNormal = PFP2::VEC3(-(positionCages[current][1]-positionCages[next][1]), positionCages[current][0]-positionCages[next][0], 0.f);
                 moyNorm += nextEdgeNormal.normalize();
-                moyNorm /= 2.f;
 
-                previousEdgeNormal *= moyNorm;
-                nextEdgeNormal *= moyNorm;
+                edgeNormal.push_back(previousEdgeNormal);
+                edgeNormal.push_back(nextEdgeNormal);
+
+                current = cages->phi1(current);
+            } while(current != d);
+
+            moyNorm /= edgeNormal.size();
+
+            current = d;
+            int l = 0;
+
+            do
+            {
+                previousEdgeNormal = edgeNormal[l]*moyNorm;
+                nextEdgeNormal = edgeNormal[l+1]*moyNorm;
 
                 linkVector[k] = ((previousEdgeNormal+nextEdgeNormal)/2.f)*(scale-1.f);
                 newPosition[k] = positionCages[current]+linkVector[k];
 
                 current = cages->phi1(current);
                 ++k;
+                l += 2;
             } while(current != d);
 
             d = vcages->newFace(cages->faceDegree(d));
@@ -379,12 +396,10 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int nbCages
 
     mh_cages->updateBB(positionCages);
     mh_cages->notifyAttributeModification(positionCages);
-    mh_cages->notifyAttributeModification(idCageCages);
     mh_cages->notifyConnectivityModification();
 
     mh_vcages->updateBB(positionVCages);
     mh_vcages->notifyAttributeModification(positionVCages);
-    mh_cages->notifyAttributeModification(idCageVCages);
     mh_vcages->notifyConnectivityModification();
 }
 
@@ -441,7 +456,7 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
 
         Dart d = cages->newFace(m_verticesCurrentlyAdded.size());
 
-        for(int i = 0; i < m_verticesCurrentlyAdded.size(); ++i)
+        for(unsigned int i = 0; i < m_verticesCurrentlyAdded.size(); ++i)
         {
             //Les sommets sont ajoutés dans l'ordre
             positionCages[d] = m_verticesCurrentlyAdded[i];
@@ -451,11 +466,9 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         int idCage = d.label();
         idCageCages[d] = idCage;
 
-        CGoGNout << idCage << CGoGNendl;
-
         Dart current = d, previous, next;
         PFP2::VEC3 previousEdgeNormal, nextEdgeNormal;
-        PFP2::REAL moyNorm, scale = 1.5f;
+        PFP2::REAL moyNorm(0.f), scale(1.5f);
         std::vector<PFP2::VEC3> linkVector, newPosition;
         linkVector.resize(cages->faceDegree(d));
         newPosition.resize(cages->faceDegree(d));
@@ -463,26 +476,42 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         //Calcul des normales aux sommets de la petite cage
         //On prend comme base les normales des arêtes incidentes au sommet considéré, ici le vecteur perpendiculaire à chacune des 2 arêtes
         //On normalise les vecteurs et on leur attribue une norme commune correspond à la moyenne de leur anciennes normes
-        int i = 0;
+
+        std::vector<PFP2::VEC3> edgeNormal;
+        edgeNormal.reserve(cages->faceDegree(d)*2);
+
         do
         {
             previous = cages->phi_1(current);
             next = cages->phi1(current);
 
             previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
-            moyNorm = previousEdgeNormal.normalize();
+            moyNorm += previousEdgeNormal.normalize();
             nextEdgeNormal = PFP2::VEC3(-(positionCages[current][1]-positionCages[next][1]), positionCages[current][0]-positionCages[next][0], 0.f);
             moyNorm += nextEdgeNormal.normalize();
-            moyNorm /= 2.f;
 
-            previousEdgeNormal *= moyNorm;
-            nextEdgeNormal *= moyNorm;
+            edgeNormal.push_back(previousEdgeNormal);
+            edgeNormal.push_back(nextEdgeNormal);
+
+            current = cages->phi1(current);
+        } while(current != d);
+
+        moyNorm /= edgeNormal.size();
+
+        current = d;
+
+        int i = 0, j = 0;
+        do
+        {
+            previousEdgeNormal = edgeNormal[j]*moyNorm;
+            nextEdgeNormal = edgeNormal[j+1]*moyNorm;
 
             linkVector[i] = ((previousEdgeNormal+nextEdgeNormal)/2.f)*(scale-1.f);
             newPosition[i] = positionCages[current]+linkVector[i];
 
             current = cages->phi1(current);
             ++i;
+            j += 2;
         } while(current != d);
 
         d = vcages->newFace(cages->faceDegree(d));
@@ -497,23 +526,21 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
 
         mh_cages->updateBB(positionCages);
         mh_cages->notifyAttributeModification(positionCages);
-        mh_cages->notifyAttributeModification(idCageCages);
         mh_cages->notifyConnectivityModification();
 
         mh_vcages->updateBB(positionVCages);
         mh_vcages->notifyAttributeModification(positionVCages);
-        mh_cages->notifyAttributeModification(idCageVCages);
         mh_vcages->notifyConnectivityModification();
     }
 }
 
 void Surface_GenerationMDTool_Plugin::clearCages()
 {
-    MapHandlerGen* mhg_tmp = m_schnapps->getMap("Cages");
-    MapHandler<PFP2>* mh_tmp = static_cast<MapHandler<PFP2>*>(mhg_tmp);
-    PFP2::MAP* tmp = mh_tmp->getMap();
+//    MapHandlerGen* mhg_tmp = m_schnapps->getMap("Cages");
+//    MapHandler<PFP2>* mh_tmp = static_cast<MapHandler<PFP2>*>(mhg_tmp);
+//    PFP2::MAP* tmp = mh_tmp->getMap();
 
-    tmp->getAttributeHandlers();
+//    tmp->getAttributeHandlers();
 
 //    VertexAttribute<PFP2::VEC3> positionTmp = tmp->getAttribute<PFP2::VEC3, VERTEX>("position") ;
 //    if(!positionTmp.isValid())
