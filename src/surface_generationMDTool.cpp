@@ -81,7 +81,6 @@ void Surface_GenerationMDTool_Plugin::keyPress(View *view, QKeyEvent *event)
                         addNewFace();
                         CGoGNout << ".. fait" << CGoGNendl;
                         m_verticesCurrentlyAdded.clear();
-                        m_verticesCurrentlyAdded.reserve(100);  //Pour avoir de la marge avant la prochaine allocation mémoire
                         m_addVertices = false;
                     }
                     m_addFaces = false;
@@ -103,7 +102,6 @@ void Surface_GenerationMDTool_Plugin::keyPress(View *view, QKeyEvent *event)
                         addNewFace();
                         CGoGNout << ".. fait" << CGoGNendl;
                         m_verticesCurrentlyAdded.clear();
-                        m_verticesCurrentlyAdded.reserve(100);  //Pour avoir de la marge avant la prochaine allocation mémoire
                         m_addVertices = false;
                     }
                 }

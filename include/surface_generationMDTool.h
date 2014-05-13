@@ -63,7 +63,6 @@ private :
     void addNewFace();
 
 private slots:
-
     void selectedMapChanged(MapHandlerGen *prev, MapHandlerGen *cur);
 
 public slots:
