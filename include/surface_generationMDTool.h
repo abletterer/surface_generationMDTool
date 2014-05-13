@@ -19,8 +19,6 @@
 
 #include "mapHandler.h"
 
-#include "coordinates.h"
-
 #include "qimage.h"
 
 namespace CGoGN
@@ -63,7 +61,6 @@ private :
     void createCages(MapHandler<PFP2>* mh_object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale);
 
     void addNewFace();
-    void clearCages();
 
 private slots:
 

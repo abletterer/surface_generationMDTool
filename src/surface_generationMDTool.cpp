@@ -61,17 +61,6 @@ void Surface_GenerationMDTool_Plugin::keyPress(View *view, QKeyEvent *event)
     {
         switch(QApplication::keyboardModifiers())
         {
-        case Qt::ControlModifier:
-            switch(event->key())
-            {
-            case Qt::Key_C :    //Suppression des cages
-                clearCages();
-                CGoGNout << "Cages supprimées" << CGoGNendl;
-                break;
-            default:
-                break;
-            }
-            break;
         case Qt::ShiftModifier :
             switch(event->key())
             {
@@ -542,13 +531,6 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         mh_vcages->notifyAttributeModification(positionVCages);
         mh_vcages->notifyConnectivityModification();
     }
-}
-
-void Surface_GenerationMDTool_Plugin::clearCages()
-{
-//    MapHandlerGen* mhg_tmp = m_schnapps->getMap("VCages");
-//    MapHandler<PFP2>* mh_tmp = static_cast<MapHandler<PFP2>*>(mhg_tmp);
-//    PFP2::MAP* tmp = mh_tmp->getMap();
 }
 
 #ifndef DEBUG
