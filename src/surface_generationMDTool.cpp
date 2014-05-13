@@ -148,14 +148,14 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, cons
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
     PFP2::MAP* map = mh_map->getMap();
 
-    VertexAttribute<PFP2::VEC3> position = map->getAttribute<PFP2::VEC3, VERTEX>("position");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> position = map->getAttribute<PFP2::VEC3, VERTEX>("position");
     if(!position.isValid())
     {
         position = map->addAttribute<PFP2::VEC3, VERTEX>("position");
         mh_map->registerAttribute(position);
     }
 
-    VertexAttribute <PFP2::VEC3> colorMap = map->getAttribute<PFP2::VEC3, VERTEX>("color");
+    VertexAttribute <PFP2::VEC3, PFP2::MAP::IMPL> colorMap = map->getAttribute<PFP2::VEC3, VERTEX>("color");
     if(!colorMap.isValid())
     {
         colorMap = map->addAttribute<PFP2::VEC3, VERTEX>("color");
@@ -250,42 +250,42 @@ void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, i
     PFP2::MAP* vcages = mh_vcages->getMap();
 
 
-    VertexAttribute<PFP2::VEC3> positionObject = object->getAttribute<PFP2::VEC3, VERTEX>("position");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionObject = object->getAttribute<PFP2::VEC3, VERTEX>("position");
     if(!positionObject.isValid())
     {
         CGoGNout << "Object position attribute not valid" << CGoGNendl;
         exit(-1);
     }
 
-    VertexAttribute<PFP2::VEC3> positionCages = cages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionCages = cages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
     if(!positionCages.isValid())
     {
         positionCages = cages->addAttribute<PFP2::VEC3, VERTEX>("position");
         mh_cages->registerAttribute(positionCages);
     }
 
-    VertexAttribute<PFP2::VEC3> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
     if(!positionVCages.isValid())
     {
         positionVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("position");
         mh_vcages->registerAttribute(positionVCages);
     }
 
-    VertexAttribute<PFP2::VEC3> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
     if(!linkCagesVCages.isValid())
     {
         linkCagesVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
         mh_vcages->registerAttribute(linkCagesVCages);
     }
 
-    FaceAttribute<int> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
+    FaceAttribute<int, PFP2::MAP::IMPL> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageCages.isValid())
     {
         idCageCages = cages->addAttribute<int, FACE>("IdCage");
         mh_cages->registerAttribute(idCageCages);
     }
 
-    FaceAttribute<int> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
+    FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageVCages.isValid())
     {
         idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
@@ -429,35 +429,35 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         MapHandler<PFP2>* mh_vcages = static_cast<MapHandler<PFP2>*>(mhg_vcages);
         PFP2::MAP* vcages = mh_vcages->getMap();
 
-        VertexAttribute<PFP2::VEC3> positionCages = cages->getAttribute<PFP2::VEC3, VERTEX>("position");
+        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionCages = cages->getAttribute<PFP2::VEC3, VERTEX>("position");
         if(!positionCages.isValid())
         {
             positionCages = cages->addAttribute<PFP2::VEC3, VERTEX>("position");
             mh_cages->registerAttribute(positionCages);
         }
 
-        VertexAttribute<PFP2::VEC3> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position");
+        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position");
         if(!positionVCages.isValid())
         {
             positionVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("position");
             mh_vcages->registerAttribute(positionVCages);
         }
 
-        VertexAttribute<PFP2::VEC3> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
         if(!linkCagesVCages.isValid())
         {
             linkCagesVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
             mh_vcages->registerAttribute(linkCagesVCages);
         }
 
-        FaceAttribute<int> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
+        FaceAttribute<int, PFP2::MAP::IMPL> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
         if(!idCageCages.isValid())
         {
             idCageCages = cages->addAttribute<int, FACE>("IdCage");
             mh_cages->registerAttribute(idCageCages);
         }
 
-        FaceAttribute<int> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
+        FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
         if(!idCageVCages.isValid())
         {
             idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
