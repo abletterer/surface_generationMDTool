@@ -77,13 +77,14 @@ void Surface_GenerationMDTool_Plugin::keyPress(View *view, QKeyEvent *event)
                     if(m_addVertices)
                     {
                         CGoGNout << "--- FIN - AJOUT DE SOMMETS ---" << CGoGNendl;
-                        CGoGNout << "Création de la nouvelle face .." << CGoGNendl;
+                        CGoGNout << "Création de la nouvelle face .." << CGoGNflush;
                         addNewFace();
-                        CGoGNout << ".. fait" << CGoGNendl;
                         m_verticesCurrentlyAdded.clear();
+                        CGoGNout << ".. fait" << CGoGNendl;
                         m_addVertices = false;
                     }
                     m_addFaces = false;
+                    CGoGNout << "--- FIN - AJOUT DE FACES ---" << CGoGNendl;
                 }
                 break;
             case Qt::Key_S :    //Ajout de sommets
@@ -98,7 +99,7 @@ void Surface_GenerationMDTool_Plugin::keyPress(View *view, QKeyEvent *event)
                     {
                         //On enregistre les sommets ajoutés
                         CGoGNout << "--- FIN - AJOUT DE SOMMETS ---" << CGoGNendl;
-                        CGoGNout << "Création de la nouvelle face .." << CGoGNendl;
+                        CGoGNout << "Création de la nouvelle face .." << CGoGNflush;
                         addNewFace();
                         CGoGNout << ".. fait" << CGoGNendl;
                         m_verticesCurrentlyAdded.clear();
@@ -135,17 +136,16 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, cons
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
     PFP2::MAP* map = mh_map->getMap();
 
-    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> position = map->getAttribute<PFP2::VEC3, VERTEX>("position");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> position = mh_map->getAttribute<PFP2::VEC3, VERTEX>("position");
     if(!position.isValid())
     {
-        position = map->addAttribute<PFP2::VEC3, VERTEX>("position");
-        mh_map->registerAttribute(position);
+        position = mh_map->addAttribute<PFP2::VEC3, VERTEX>("position");
     }
 
-    VertexAttribute <PFP2::VEC3, PFP2::MAP::IMPL> colorMap = map->getAttribute<PFP2::VEC3, VERTEX>("color");
+    VertexAttribute <PFP2::VEC3, PFP2::MAP::IMPL> colorMap = mh_map->getAttribute<PFP2::VEC3, VERTEX>("color");
     if(!colorMap.isValid())
     {
-        colorMap = map->addAttribute<PFP2::VEC3, VERTEX>("color");
+        colorMap = mh_map->addAttribute<PFP2::VEC3, VERTEX>("color");
     }
 
     if(!filename.isEmpty())
@@ -237,46 +237,41 @@ void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, i
     PFP2::MAP* vcages = mh_vcages->getMap();
 
 
-    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionObject = object->getAttribute<PFP2::VEC3, VERTEX>("position");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionObject = mh_object->getAttribute<PFP2::VEC3, VERTEX>("position");
     if(!positionObject.isValid())
     {
         CGoGNout << "Object position attribute not valid" << CGoGNendl;
         exit(-1);
     }
 
-    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionCages = cages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionCages = mh_cages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
     if(!positionCages.isValid())
     {
-        positionCages = cages->addAttribute<PFP2::VEC3, VERTEX>("position");
-        mh_cages->registerAttribute(positionCages);
+        positionCages = mh_cages->addAttribute<PFP2::VEC3, VERTEX>("position");
     }
 
-    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionVCages = mh_vcages->getAttribute<PFP2::VEC3, VERTEX>("position") ;
     if(!positionVCages.isValid())
     {
-        positionVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("position");
-        mh_vcages->registerAttribute(positionVCages);
+        positionVCages = mh_vcages->addAttribute<PFP2::VEC3, VERTEX>("position");
     }
 
-    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> linkCagesVCages = mh_vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
     if(!linkCagesVCages.isValid())
     {
-        linkCagesVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
-        mh_vcages->registerAttribute(linkCagesVCages);
+        linkCagesVCages = mh_vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
     }
 
-    FaceAttribute<int, PFP2::MAP::IMPL> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
+    FaceAttribute<int, PFP2::MAP::IMPL> idCageCages = mh_cages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageCages.isValid())
     {
-        idCageCages = cages->addAttribute<int, FACE>("IdCage");
-        mh_cages->registerAttribute(idCageCages);
+        idCageCages = mh_cages->addAttribute<int, FACE>("IdCage");
     }
 
-    FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
+    FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = mh_cages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageVCages.isValid())
     {
-        idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
-        mh_vcages->registerAttribute(idCageVCages);
+        idCageVCages = mh_vcages->addAttribute<int, FACE>("IdCage");
     }
 
     Geom::BoundingBox<PFP2::VEC3> bb = Algo::Geometry::computeBoundingBox<PFP2>(*object, positionObject);
@@ -327,7 +322,7 @@ void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, i
 
             //Calcul des normales aux sommets de la petite cage
             //On prend comme base les normales des arêtes incidentes au sommet considéré, ici le vecteur perpendiculaire à chacune des 2 arêtes
-            //On normalise les vecteurs et on leur attribue une norme commune correspond à la moyenne de leur anciennes normes
+            //On normalise les vecteurs et on leur tribue une norme commune correspond à la moyenne de leur anciennes normes
 
             std::vector<PFP2::VEC3> edgeNormal;
             edgeNormal.reserve(cages->faceDegree(d)*2);
@@ -383,7 +378,6 @@ void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, i
     }
 
     cages->enableQuickTraversal<FACE>();
-
     vcages->enableQuickTraversal<FACE>();
 
     mh_cages->updateBB(positionCages);
@@ -416,39 +410,34 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         MapHandler<PFP2>* mh_vcages = static_cast<MapHandler<PFP2>*>(mhg_vcages);
         PFP2::MAP* vcages = mh_vcages->getMap();
 
-        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionCages = cages->getAttribute<PFP2::VEC3, VERTEX>("position");
+        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionCages = mh_cages->getAttribute<PFP2::VEC3, VERTEX>("position");
         if(!positionCages.isValid())
         {
-            positionCages = cages->addAttribute<PFP2::VEC3, VERTEX>("position");
-            mh_cages->registerAttribute(positionCages);
+            positionCages = mh_cages->addAttribute<PFP2::VEC3, VERTEX>("position");
         }
 
-        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("position");
+        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionVCages = mh_vcages->getAttribute<PFP2::VEC3, VERTEX>("position");
         if(!positionVCages.isValid())
         {
-            positionVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("position");
-            mh_vcages->registerAttribute(positionVCages);
+            positionVCages = mh_vcages->addAttribute<PFP2::VEC3, VERTEX>("position");
         }
 
-        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> linkCagesVCages = vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
+        VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> linkCagesVCages = mh_vcages->getAttribute<PFP2::VEC3, VERTEX>("LinkCages");
         if(!linkCagesVCages.isValid())
         {
-            linkCagesVCages = vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
-            mh_vcages->registerAttribute(linkCagesVCages);
+            linkCagesVCages = mh_vcages->addAttribute<PFP2::VEC3, VERTEX>("LinkCages");
         }
 
-        FaceAttribute<int, PFP2::MAP::IMPL> idCageCages = cages->getAttribute<int, FACE>("IdCage") ;
+        FaceAttribute<int, PFP2::MAP::IMPL> idCageCages = mh_cages->getAttribute<int, FACE>("IdCage") ;
         if(!idCageCages.isValid())
         {
-            idCageCages = cages->addAttribute<int, FACE>("IdCage");
-            mh_cages->registerAttribute(idCageCages);
+            idCageCages = mh_cages->addAttribute<int, FACE>("IdCage");
         }
 
-        FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = vcages->getAttribute<int, FACE>("IdCage") ;
+        FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = mh_vcages->getAttribute<int, FACE>("IdCage") ;
         if(!idCageVCages.isValid())
         {
-            idCageVCages = vcages->addAttribute<int, FACE>("IdCage");
-            mh_vcages->registerAttribute(idCageVCages);
+            idCageVCages = mh_vcages->addAttribute<int, FACE>("IdCage");
         }
 
         Dart d = cages->newFace(m_verticesCurrentlyAdded.size());
@@ -513,11 +502,12 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
 
         d = vcages->newFace(cages->faceDegree(d));
         idCageVCages[d] = idCage;
+        d = vcages->phi1(d);
 
         for(i = 0; i < newPosition.size(); ++i)
         {
-            positionVCages[cages->phi1(d)] = newPosition[i];
-            linkCagesVCages[cages->phi1(d)] = linkVector[i];
+            positionVCages[d] = newPosition[i];
+            linkCagesVCages[d] = linkVector[i];
             d = vcages->phi1(d);
         }
 
@@ -528,6 +518,9 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         mh_vcages->updateBB(positionVCages);
         mh_vcages->notifyAttributeModification(positionVCages);
         mh_vcages->notifyConnectivityModification();
+
+        cages->updateQuickTraversal<FACE>();
+        vcages->updateQuickTraversal<FACE>();
     }
 }
 
