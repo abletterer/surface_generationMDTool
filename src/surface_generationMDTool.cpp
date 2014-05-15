@@ -268,7 +268,7 @@ void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, i
         idCageCages = mh_cages->addAttribute<int, FACE>("IdCage");
     }
 
-    FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = mh_cages->getAttribute<int, FACE>("IdCage") ;
+    FaceAttribute<int, PFP2::MAP::IMPL> idCageVCages = mh_vcages->getAttribute<int, FACE>("IdCage") ;
     if(!idCageVCages.isValid())
     {
         idCageVCages = mh_vcages->addAttribute<int, FACE>("IdCage");
@@ -307,6 +307,7 @@ void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, i
         {
             d = cages->newFace(4);
             idCageCages[d] = i*nbCagesPerRow+j;
+
             positionCages[d] = PFP2::VEC3(w-(sqrt2DivBy2*stepW/2.f), h-(sqrt2DivBy2*stepH/2.f), 0.f);
             d = cages->phi1(d);
             positionCages[d] = PFP2::VEC3(w+(sqrt2DivBy2*stepW/2.f), h-(sqrt2DivBy2*stepH/2.f), 0.f);
@@ -370,6 +371,7 @@ void Surface_GenerationMDTool_Plugin::createCages(MapHandler<PFP2>* mh_object, i
                 linkCagesVCages[d] = linkVector[k];
                 d = vcages->phi1(d);
             }
+
 //            w += stepW/2.f;
             w += stepW;
         }
@@ -511,16 +513,17 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
             d = vcages->phi1(d);
         }
 
-        mh_cages->updateBB(positionCages);
-        mh_cages->notifyAttributeModification(positionCages);
-        mh_cages->notifyConnectivityModification();
-
-        mh_vcages->updateBB(positionVCages);
-        mh_vcages->notifyAttributeModification(positionVCages);
-        mh_vcages->notifyConnectivityModification();
-
         cages->updateQuickTraversal<FACE>();
         vcages->updateQuickTraversal<FACE>();
+
+        mh_cages->updateBB(positionCages);
+        mh_vcages->updateBB(positionVCages);
+
+        mh_cages->notifyConnectivityModification();
+        mh_vcages->notifyConnectivityModification();
+
+        mh_vcages->notifyAttributeModification(positionVCages);
+        mh_cages->notifyAttributeModification(positionCages);
     }
 }
 
