@@ -44,7 +44,7 @@ void Surface_GenerationMDTool_Plugin::draw(View *view)
     {
         m_drawer->newList(GL_COMPILE_AND_EXECUTE);
         m_drawer->pointSize(10.f);
-        m_drawer->color3f(1.0f, 0.f, 0.f);
+        m_drawer->color3f(1.f, 1.f, 1.f);
         m_drawer->begin(GL_POINTS);
         for(int i = 0; i < m_verticesCurrentlyAdded.size(); ++i)
         {
@@ -456,7 +456,7 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
 
         Dart current = d, previous, next;
         PFP2::VEC3 previousEdgeNormal, nextEdgeNormal;
-        PFP2::REAL moyNorm(0.f), scale(1.5f);
+        PFP2::REAL moyNorm(0.f), scale(3.f);
         std::vector<PFP2::VEC3> linkVector, newPosition;
         linkVector.resize(cages->faceDegree(d));
         newPosition.resize(cages->faceDegree(d));
@@ -513,8 +513,23 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
             d = vcages->phi1(d);
         }
 
-        cages->updateQuickTraversal<FACE>();
-        vcages->updateQuickTraversal<FACE>();
+        if(cages->getQuickTraversal<FACE>())
+        {
+            cages->updateQuickTraversal<FACE>();
+        }
+        else
+        {
+            cages->enableQuickTraversal<FACE>();
+        }
+
+        if(vcages->getQuickTraversal<FACE>())
+        {
+            vcages->updateQuickTraversal<FACE>();
+        }
+        else
+        {
+            vcages->enableQuickTraversal<FACE>();
+        }
 
         mh_cages->updateBB(positionCages);
         mh_vcages->updateBB(positionVCages);
