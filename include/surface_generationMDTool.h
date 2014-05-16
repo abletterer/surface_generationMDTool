@@ -52,7 +52,7 @@ public:
     virtual void mousePress(View* view, QMouseEvent* event);
     virtual void mouseRelease(View* view, QMouseEvent* event) {}
     virtual void mouseMove(View* view, QMouseEvent* event) {}
-    virtual void wheelEvent(View* view, QWheelEvent* event) {}
+    virtual void wheelEvent(View* view, QWheelEvent* event);
 
     virtual void viewLinked(View* view) {}
     virtual void viewUnlinked(View* view) {}
@@ -61,6 +61,7 @@ private :
     void createCages(MapHandler<PFP2>* mh_object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale);
 
     void addNewFace();
+    void updateScaleVCages(MapHandler<PFP2>* mh_vcage, PFP2::REAL scale);
 
 private slots:
     void selectedMapChanged(MapHandlerGen *prev, MapHandlerGen *cur);
@@ -84,6 +85,9 @@ protected:
 
     bool m_addFaces;
     bool m_addVertices;
+    bool m_setScaleFactor;
+
+    PFP2::REAL m_scaleFactor;
 
     std::vector<PFP2::VEC3> m_verticesCurrentlyAdded;
 };
