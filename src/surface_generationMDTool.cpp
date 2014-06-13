@@ -74,6 +74,7 @@ void Surface_GenerationMDTool_Plugin::keyPress(View *view, QKeyEvent *event)
                     CGoGNout << "--- DEBUT - AJOUT DE SOMMETS ---" << CGoGNendl;
                     m_addFaces = true;
                     m_addVertices = true;
+                    view->setMouseTracking(false);
                 }
                 else
                 {
@@ -501,7 +502,7 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
 
         Dart current = d, previous, next;
         PFP2::VEC3 previousEdgeNormal, nextEdgeNormal;
-        PFP2::REAL moyNorm(0.f), scale(2.f);
+        PFP2::REAL moyNorm(0.f), scale(1.5f);
         std::vector<PFP2::VEC3> linkVector, newPosition;
         linkVector.resize(cages->faceDegree(d));
         newPosition.resize(cages->faceDegree(d));
@@ -513,15 +514,30 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
         std::vector<PFP2::VEC3> edgeNormal;
         edgeNormal.reserve(cages->faceDegree(d)*2);
 
+        PFP2::VEC3 centerOfGravity(0.f);
+
+        do
+        {
+            centerOfGravity += positionCages[current];
+            current = cages->phi1(current);
+        } while(current != d);
+
+        centerOfGravity /= cages->faceDegree(d);
+
         do
         {
             previous = cages->phi_1(current);
             next = cages->phi1(current);
 
-            previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]), positionCages[previous][0]-positionCages[current][0], 0.f);
-            moyNorm += previousEdgeNormal.normalize();
-            nextEdgeNormal = PFP2::VEC3(-(positionCages[current][1]-positionCages[next][1]), positionCages[current][0]-positionCages[next][0], 0.f);
-            moyNorm += nextEdgeNormal.normalize();
+            previousEdgeNormal = PFP2::VEC3(-(positionCages[previous][1]-positionCages[current][1]),
+                    positionCages[previous][0]-positionCages[current][0], 0.f);
+
+            previousEdgeNormal.normalize();
+
+            nextEdgeNormal = PFP2::VEC3(-(positionCages[current][1]-positionCages[next][1]),
+                    positionCages[current][0]-positionCages[next][0], 0.f);
+
+            nextEdgeNormal.normalize();
 
             edgeNormal.push_back(previousEdgeNormal);
             edgeNormal.push_back(nextEdgeNormal);
@@ -529,17 +545,17 @@ void Surface_GenerationMDTool_Plugin::addNewFace()
             current = cages->phi1(current);
         } while(current != d);
 
-        moyNorm /= edgeNormal.size();
-
-        current = d;
-
         unsigned int i = 0, j = 0;
         do
         {
-            previousEdgeNormal = edgeNormal[j]*moyNorm;
-            nextEdgeNormal = edgeNormal[j+1]*moyNorm;
+            previousEdgeNormal = edgeNormal[j];
+            nextEdgeNormal = edgeNormal[j+1];
 
-            linkVector[i] = ((previousEdgeNormal+nextEdgeNormal)/2.f)*(scale-1.f);
+            PFP2::VEC3 moyPreviousNextNormals = (previousEdgeNormal+nextEdgeNormal)/2.f;
+            moyPreviousNextNormals.normalize();
+            moyPreviousNextNormals *= ((positionCages[current]-centerOfGravity).norm());
+
+            linkVector[i] = (moyPreviousNextNormals)*(scale-1.f);
             newPosition[i] = positionCages[current]+linkVector[i];
 
             current = cages->phi1(current);
