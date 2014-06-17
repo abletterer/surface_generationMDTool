@@ -7,8 +7,6 @@
 
 #include "Geometry/bounding_box.h"
 
-#include "Topology/generic/traversor2.h"
-
 #include "Utils/Shaders/shaderColorPerVertex.h"
 
 #include "Algo/Modelisation/subdivision.h"

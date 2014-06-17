@@ -41,7 +41,7 @@ void Surface_GenerationMDTool_Plugin::initializeObject(const QString& view, int 
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
     PFP2::MAP* map = mh_map->getMap();
 
-    VertexAttribute<PFP2::VEC3> position = map->getAttribute<PFP2::VEC3, VERTEX>("position");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> position = map->getAttribute<PFP2::VEC3, VERTEX>("position");
     if(!position.isValid())
     {
         position = map->addAttribute<PFP2::VEC3, VERTEX>("position");
@@ -92,14 +92,14 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
     MapHandler<PFP2>* mh_map = static_cast<MapHandler<PFP2>*>(mhg_map);
     PFP2::MAP* map = mh_map->getMap();
 
-    VertexAttribute<PFP2::VEC3> positionObject = object->getAttribute<PFP2::VEC3, VERTEX>("position");
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> positionObject = object->getAttribute<PFP2::VEC3, VERTEX>("position");
     if(!positionObject.isValid())
     {
         CGoGNout << "Object position attribute not valid" << CGoGNendl;
         exit(-1);
     }
 
-    VertexAttribute<PFP2::VEC3> position = map->getAttribute<PFP2::VEC3, VERTEX>("position") ;
+    VertexAttribute<PFP2::VEC3, PFP2::MAP::IMPL> position = map->getAttribute<PFP2::VEC3, VERTEX>("position") ;
     if(!position.isValid())
     {
         position = map->addAttribute<PFP2::VEC3, VERTEX>("position");
@@ -115,8 +115,8 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
 
     Algo::Surface::Modelisation::swapVectorMax(min, max);
 
-    min += (max-min)/2.f+0.1f;
-    max -= (max-min)/2.f-0.1f;
+    //min += (max-min)/2.f+0.1f;
+    //max -= (max-min)/2.f-0.1f;
 
     Algo::Surface::Tilings::Square::Grid<PFP2> grid(*map, x, y);
     grid.embedIntoGrid(position, x, y);
@@ -134,7 +134,7 @@ void Surface_GenerationMDTool_Plugin::createCages(PFP2::MAP* object, int x, int 
     map->enableQuickTraversal<FACE>();
     map->enableQuickTraversal<VERTEX>();
 
-    map->initAllOrbitsEmbedding<FACE>();
+    //map->init<FACE>();
 
     mh_map->updateBB(position);
     mh_map->notifyAttributeModification(position);
