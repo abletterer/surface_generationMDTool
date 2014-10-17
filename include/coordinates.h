@@ -27,7 +27,7 @@ public:
     void setCoordinate(const PFP2::VEC3& min, const PFP2::VEC3& max, const PFP2::REAL& coordinate, int index)
     {
         std::ostringstream key;
-        key << min << max
+        key << min << max;
 
         m_coordinates[QString::fromStdString(key.str())][index] = coordinate;
     }
