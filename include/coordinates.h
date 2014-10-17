@@ -19,55 +19,55 @@ namespace SCHNApps
 */
 class Coordinates
 {
-   public:
-        Coordinates()
+public:
+    Coordinates()
         :   m_coordinates()
-        {}
+    {}
 
-        void setCoordinate(const PFP2::VEC3& min, const PFP2::VEC3& max, const PFP2::REAL& coordinate, int index)
+    void setCoordinate(const PFP2::VEC3& min, const PFP2::VEC3& max, const PFP2::REAL& coordinate, int index)
+    {
+        std::ostringstream key;
+        key << min << max;
+
+        m_coordinates[QString::fromStdString(key.str())][index] = coordinate;
+    }
+
+    PFP2::REAL getCoordinate(const PFP2::VEC3& min, const PFP2::VEC3& max, int index)
+    {
+        std::ostringstream key;
+        key << min << max;
+
+        std::map<QString, std::vector<PFP2::REAL> >::const_iterator elem;
+        if((elem = m_coordinates.find(QString::fromStdString(key.str()))) != m_coordinates.end())
         {
-            std::ostringstream key;
-            key << min << max;
-
-            m_coordinates[QString::fromStdString(key.str())][index] = coordinate;
+            return elem->second[index];
         }
+        return NULL;
+    }
 
-        PFP2::REAL getCoordinate(const PFP2::VEC3& min, const PFP2::VEC3& max, int index)
+    void setCoordinate(const QString& key, const PFP2::REAL& coordinate, int index)
+    {
+        m_coordinates[key][index] = coordinate;
+    }
+
+    PFP2::REAL getCoordinate(const QString& key, int index)
+    {
+        std::map<QString, std::vector<PFP2::REAL> >::const_iterator elem;
+        if((elem = m_coordinates.find(key)) != m_coordinates.end())
         {
-            std::ostringstream key;
-            key << min << max;
-
-            std::map<QString, std::vector<PFP2::REAL> >::const_iterator elem;
-            if((elem = m_coordinates.find(QString::fromStdString(key.str()))) != m_coordinates.end())
-            {
-                return elem->second[index];
-            }
-            return NULL;
+            return elem->second[index];
         }
-
-        void setCoordinate(const QString& key, const PFP2::REAL& coordinate, int index)
-        {
-            m_coordinates[key][index] = coordinate;
-        }
-
-        PFP2::REAL getCoordinate(const QString& key, int index)
-        {
-            std::map<QString, std::vector<PFP2::REAL> >::const_iterator elem;
-            if((elem = m_coordinates.find(key)) != m_coordinates.end())
-            {
-                return elem->second[index];
-            }
-            return NULL;
-        }
+        return NULL;
+    }
 
 
-        static std::string CGoGNnameOfType()
-        {
-            return "Coordinates" ;
-        }
+    static std::string CGoGNnameOfType()
+    {
+        return "Coordinates" ;
+    }
 
-    private:
-        std::map<QString, std::vector<PFP2::REAL> > m_coordinates;
+private:
+    std::map<QString, std::vector<PFP2::REAL> > m_coordinates;
 };
 
 } //namespace SCHNApps

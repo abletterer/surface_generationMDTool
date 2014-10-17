@@ -29,35 +29,43 @@ namespace SCHNApps
 
 class Surface_GenerationMDTool_Plugin : public PluginInteraction
 {
-	Q_OBJECT
-	Q_INTERFACES(CGoGN::SCHNApps::Plugin)
+    Q_OBJECT
+    Q_INTERFACES(CGoGN::SCHNApps::Plugin)
 
     friend class Surface_GenerationMDTool_DockTab;
 
 public:
     Surface_GenerationMDTool_Plugin()
-	{}
+    {
+    }
 
     ~Surface_GenerationMDTool_Plugin()
-	{}
+    {
+    }
 
-	virtual bool enable();
-	virtual void disable();
+    virtual bool enable();
+    virtual void disable();
 
     virtual void draw(View* view);
-    virtual void drawMap(View* view, MapHandlerGen* map) {}
+    virtual void drawMap(View* view, MapHandlerGen* map) {
+    }
 
     virtual void keyPress(View* view, QKeyEvent* event);
-    virtual void keyRelease(View* view, QKeyEvent* event) {}
+    virtual void keyRelease(View* view, QKeyEvent* event) {
+    }
     virtual void mousePress(View* view, QMouseEvent* event);
-    virtual void mouseRelease(View* view, QMouseEvent* event) {}
-    virtual void mouseMove(View* view, QMouseEvent* event) {}
+    virtual void mouseRelease(View* view, QMouseEvent* event) {
+    }
+    virtual void mouseMove(View* view, QMouseEvent* event) {
+    }
     virtual void wheelEvent(View* view, QWheelEvent* event);
 
-    virtual void viewLinked(View* view) {}
-    virtual void viewUnlinked(View* view) {}
+    virtual void viewLinked(View* view) {
+    }
+    virtual void viewUnlinked(View* view) {
+    }
 
-private :
+private:
     void createCages(MapHandler<PFP2>* mh_object, int nbCagesPerRow, int nbCagesPerColumn, PFP2::REAL scale);
 
     void addNewFace();
@@ -97,4 +105,3 @@ protected:
 } // namespace CGoGN
 
 #endif
-
